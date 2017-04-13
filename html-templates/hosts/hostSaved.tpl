@@ -1,0 +1,1 @@
+{Site::redirect('/hosts/$data->ID/edit?updated=true')}

@@ -1,0 +1,3 @@
+<?php
+
+Convergence\HostsRequestHandler::handleRequest();
