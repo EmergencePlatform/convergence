@@ -140,8 +140,9 @@ class Site extends \ActiveRecord
         $this->Updating = false;
         $this->save();
 
-        // Clear vfs cache to ensure all file are available
-        $this->clearVFSCache();
+        // Clear vfs cache to ensures all file are available
+        // @todo push to the kernel
+        // $this->clearVFSCache();
 
         return $response;
     }
@@ -153,31 +154,6 @@ class Site extends \ActiveRecord
         $response = json_decode($response, true);
         $this->LocalCursor = $response['localCursor'];
         $this->save();
-    }
-
-    // @todo move into emergence kernel powered request
-    public function clearVFSCache()
-    {
-        if (\Ontray\Store::$enableSSL) {
-            $url = 'https://';
-        } else {
-            $url = 'http://';
-        }
-
-        $url .= $this->PrimaryHostname->Hostname . '/clear-vfs-cache';
-
-        // @todo add a validation to this POST
-        // $fields = 'StoreID=' . $Store->ID;
-
-        $ch = curl_init();
-        curl_setopt($ch,CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch,CURLOPT_POST, 1);
-        curl_setopt($ch,CURLOPT_POSTFIELDS, $fields);
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        return $result;
     }
 
     public static function getChildren($parentIDs = [])
