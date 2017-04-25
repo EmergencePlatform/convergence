@@ -114,8 +114,7 @@ class Deployment extends \ActiveRecord
         ], true);
 
         // Run the pull tool
-        // @todo must use parent with this file available
-        // $StagingSite->updateFileSystem();
+        $StagingSite->updateFileSystem();
 
         // Create production site configs
         $prodConfig = [
@@ -137,7 +136,7 @@ class Deployment extends \ActiveRecord
         $prodResponse = $this->Host->createSite($prodConfig);
 
         // Create matching convergence site
-        $ProdSide = Site::create([
+        $ProdSite = Site::create([
             'Label' => $prodResponse['data']['label'],
             'Handle' => $prodResponse['data']['handle'],
             'InheritanceKey' => $prodResponse['data']['inheritance_key'],
@@ -148,13 +147,11 @@ class Deployment extends \ActiveRecord
         ], true);
         
         // Run the pull tool
-        // @todo must use parent site with the SiteUpdater file available
-        // $ProdSite->updateFileSystem();
+        $ProdSite->updateFileSystem();
 
         // Update local cursors
-        // @todo must use parent site with the SiteUpdater file available
-        // $StagingSite->updateLocalCursor();
-        // $ProdSite->updateLocalCursor();
+        $StagingSite->updateLocalCursor();
+        $ProdSite->updateLocalCursor();
 
         // Update provisioning status
         $this->Status = 'available';
