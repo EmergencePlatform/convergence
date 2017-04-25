@@ -10,8 +10,8 @@ class Deployment extends \ActiveRecord
     public static $collectionRoute = 'deployments';
 
     public static $defaultHostname;
-    public static $defaultParentHostname = 'skeleton-v2.emr.ge';
-    public static $defaultParentInheritanceKey = 'lKhjNhwXoM8rLbXw';
+    public static $defaultParentHostname = 'skeleton-temp.sandbox02.jarv.us'; // 'skeleton-v2.emr.ge';
+    public static $defaultParentInheritanceKey = '3CsAitz4GyB0MVs7'; // 'lKhjNhwXoM8rLbXw';
     public static $onBeforeStagingDeployment;
     public static $onBeforeProductionDeployment;
     public static $onAfterDeployment;
