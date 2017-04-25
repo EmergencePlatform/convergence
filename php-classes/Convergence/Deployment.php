@@ -69,7 +69,7 @@ class Deployment extends \ActiveRecord
 
         // Set up staging params
         $stagingConfig = [
-            'handle' => 's-' . $handle,
+            'handle' => $handle . '-s',
             'hostnames' => [],
             'inheritance_key' => '',
             'label' => $this->Label . ' (Staging)'
