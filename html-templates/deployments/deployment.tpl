@@ -41,8 +41,8 @@
                 <tr>
                     <th>Label</th>
                     <th>Handle</th>
-                    <th>Status</th>
                     <th>Hostname</th>
+                    <th>Status</th>
                     <th>Parent</th>
                     <th></th>
                 </tr>

@@ -10,7 +10,7 @@
             <a href="/{Convergence\Host::$collectionRoute}" class="btn btn-success">{_ "All Hosts"}</a>
         </div>
     </div>
-        <h1>Host: {$data->Hostname}</h1>
+    <h1>Host: {$data->Hostname}</h1>
 </div>
 <div class="row">
     <div class="col-sm-12">
@@ -26,16 +26,16 @@
                     <td>{$data->MaxSites}</td>
                 </tr>
                 <tr>
-                    <th>KernelVersion</th>
-                    <td>{$data->KernelVersion}</td>
-                </tr>
-                <tr>
                     <th>ApiUsername</th>
                     <td>{$data->ApiUsername}</td>
                 </tr>
                 <tr>
                     <th>ApiKey</th>
                     <td>{$data->ApiKey}</td>
+                </tr>
+                <tr>
+                    <th>KernelVersion</th>
+                    <td>{$data->KernelVersion}</td>
                 </tr>
             </tbody>
         </table>
@@ -63,7 +63,7 @@
                     </tr>
                 {foreachelse}
                     <tr>
-                        <td colspan="3">Sorry no sites</td>
+                        <td colspan="3">Sorry no deployments.</td>
                     </tr>
                 {/foreach}
             </tbody>
@@ -94,7 +94,7 @@
                     </tr>
                 {foreachelse}
                     <tr>
-                        <td colspan="4">Sorry no sites</td>
+                        <td colspan="4">Sorry no sites.</td>
                     </tr>
                 {/foreach}
             </tbody>

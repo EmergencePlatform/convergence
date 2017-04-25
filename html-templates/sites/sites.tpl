@@ -42,7 +42,7 @@
                                     N/A
                                 {/if}
                             </td>
-                            <td><a href="/sites/{$Site->ID}/update" class="btn btn-sm btn-primary">Update Site</a></td>
+                            <td class="text-right"><a href="/sites/{$Site->ID}/update" class="btn btn-sm btn-primary">View Updates</a></td>
                         </tr>
                     {/foreach}
                 </tbody>
