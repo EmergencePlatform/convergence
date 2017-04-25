@@ -1,47 +1,45 @@
-{extends designs/site.tpl}
+{extends designs/convergence.tpl}
 
 {block content}
 {load_templates subtemplates/paging.tpl}
-<main role="main">
-    <div class="container">
-        <header class="page-header">
-            <div class="btn-toolbar pull-right">
-                <a href="/hosts/create">{_ "Add Host"}</a>
-            </div>
-            <h1>{_ "Deployments"}</h1>
-        </header>
-        <div class="row">
-            <div class="col-sm-12">
-                {if $data}
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th>Hostname</th>
-                                <th>Max Sites</th>
-                                <th>Username</th>
-                                <th>Key</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {foreach item=Host from=$data}
-                                <tr>
-                                    <td>{$Host->Hostname}</td>
-                                    <td>{$Host->MaxSites}</td>
-                                    <td>{$Host->ApiUsername}</td>
-                                    <td>{$Host->ApiKey}</td>
-                                    <td><a href="{$Host->getUrl()}">View</a> / <a href="{$Host->getUrl('edit')}">Edit</a></td>
-                                </tr>
-                            {/foreach}
-                        </tbody>
-                    </table>
-                {else}
-                    <p>Sorry, no deployments available.</p>
-                {/if}
-            </div>
+<div class="page-header">
+    <div class='btn-toolbar pull-right'>
+        <div class='btn-group'>
+            <a href="/hosts/create" class="btn btn-primary">{_ "Add Host"}</a>
         </div>
-        {$total = Convergence\Deployment::getCount()}
-        {pagingLinks $total Convergence\DeploymentRequestHandler::$browseLimitDefault}        
     </div>
-</main>
+    <h1>{_ "Hosts"}</h1>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        {if $data}
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Hostname</th>
+                        <th>Max Sites</th>
+                        <th>Username</th>
+                        <th>Key</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {foreach item=Host from=$data}
+                        <tr>
+                            <td>{$Host->Hostname}</td>
+                            <td>{$Host->MaxSites}</td>
+                            <td>{$Host->ApiUsername}</td>
+                            <td>{$Host->ApiKey}</td>
+                            <td class="text-right"><a href="{$Host->getUrl()}" class="btn btn-sm btn-primary">View</a> <a href="{$Host->getUrl('edit')}" class="btn btn-sm btn-success">Edit</a></td>
+                        </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        {else}
+            <p>Sorry, no deployments available.</p>
+        {/if}
+        {$total = Convergence\Deployment::getCount()}
+        {pagingLinks $total Convergence\DeploymentRequestHandler::$browseLimitDefault}   
+    </div>
+</div>     
 {/block}
