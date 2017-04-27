@@ -36,7 +36,7 @@
                 </tbody>
             </table>
         {else}
-            <p>Sorry, no deployments available.</p>
+            <p>Sorry, no hosts available.</p>
         {/if}
         {$total = Convergence\Deployment::getCount()}
         {pagingLinks $total Convergence\DeploymentRequestHandler::$browseLimitDefault}   
