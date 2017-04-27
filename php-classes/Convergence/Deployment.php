@@ -128,9 +128,6 @@ class Deployment extends \ActiveRecord
             'ParentSiteID' => $this->ParentSiteID
         ], true);
 
-        // Run the pull tool
-        $StagingSite->updateFileSystem();
-
         // Create production site configs
         $prodConfig = [
             'handle' => $handle,
@@ -160,13 +157,10 @@ class Deployment extends \ActiveRecord
             'HostID' => $this->HostID,
             'ParentSiteID' => $StagingSite->ID
         ], true);
-        
-        // Run the pull tool
-        $ProdSite->updateFileSystem();
 
-        // Update local cursors
-        $StagingSite->updateLocalCursor();
-        $ProdSite->updateLocalCursor();
+        // Update both file systems
+        $StagingSite->updateFileSystem();
+        $ProdSite->updateFileSystem();
 
         // Update provisioning status
         $this->Status = 'available';
