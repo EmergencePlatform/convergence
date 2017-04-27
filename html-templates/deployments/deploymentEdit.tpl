@@ -41,7 +41,6 @@
                     <select name="Status" id="Status" class="form-control" {if !$data->isPhantom && $data->Status !== 'draft'}disabled{/if}>
                         <option value="draft" {if $data->Status == 'draft'}selected{/if}>Draft</option>
                         <option value="pending" {if $data->Status == 'pending'}selected{/if}>Pending</option>
-                        <option value="pending" {if $data->Status == 'pending'}selected{/if}>Pending</option>
                         <option value="provisioning" {if $data->Status == 'provisioning'}selected{/if} disabled>Provisioning</option>
                         <option value="available" {if $data->Status == 'available'}selected{/if} disabled>Available</option>
                         <option value="suspended" {if $data->Status == 'suspended'}selected{/if}>Suspended</option>
