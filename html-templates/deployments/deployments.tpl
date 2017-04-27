@@ -28,7 +28,11 @@
                             <td>{$Deployment->Label}</td>
                             <td>{$Deployment->Status}</td>
                             <td>{count($Deployment->Sites)}</td>
-                            <td class="text-right"><a href="/{$Deployment->getUrl()}" class="btn btn-sm btn-primary">View</a> <a href="/{$Deployment->getUrl('edit')}" class="btn btn-sm btn-success">Edit</a></td>
+                            <td class="text-right">
+                                <a href="/{$Deployment->getUrl()}" class="btn btn-sm btn-primary">View</a>
+                                <a href="/{$Deployment->getUrl('edit')}" class="btn btn-sm btn-success">Edit</a>
+                                <a href="/{$Deployment->getUrl('update')}" class="btn btn-sm btn-info">Update</a>
+                            </td>
                         </tr>
                     {/foreach}
                 </tbody>

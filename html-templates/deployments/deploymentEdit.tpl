@@ -6,8 +6,11 @@
 <div class="page-header">
     <div class='btn-toolbar pull-right'>
         <div class='btn-group'>
-            {if !$data->isPhantom}<a href="/{$data->getUrl()}" class="btn btn-primary">{_ "View Deployment"}</a>{/if}
-            <a href="/{Convergence\Deployment::$collectionRoute}" class="btn btn-success">{_ "All Deployments"}</a>
+            {if !$data->isPhantom}
+                <a href="/{$data->getUrl()}" class="btn btn-primary">{_ "View Deployment"}</a>
+                <a href="/{$data->getUrl('update')}" class="btn btn-success">{_ "Update Deployment"}</a>
+            {/if}
+            <a href="/{Convergence\Deployment::$collectionRoute}" class="btn btn-info">{_ "All Deployments"}</a>
         </div>
     </div>
     <h1>{if $data->isPhantom}{_ "Create Deployment"}{else}{_ "Edit Deployment:"} {$data->Label}{/if}</h1>

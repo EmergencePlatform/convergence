@@ -7,7 +7,8 @@
     <div class='btn-toolbar pull-right'>
         <div class='btn-group'>
             <a href="/{$data->getUrl('edit')}" class="btn btn-primary">{_ "Edit Deployment"}</a>
-            <a href="/{Convergence\Deployment::$collectionRoute}" class="btn btn-success">{_ "All Deployments"}</a>
+            <a href="/{$data->getUrl('update')}" class="btn btn-success">{_ "Update Deployment"}</a>
+            <a href="/{Convergence\Deployment::$collectionRoute}" class="btn btn-info">{_ "All Deployments"}</a>
         </div>
     </div>
     <h1>{_ "Deployment:"} {$data->Label}</h1>

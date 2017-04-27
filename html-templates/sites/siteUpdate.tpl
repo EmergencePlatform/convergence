@@ -4,7 +4,7 @@
 
 {block content}
 {if !$summary}
-    {$summary = $Site->getFileSystemSummary()}
+    {$summary = $data->getFileSystemSummary()}
 {else}
     {$updated = true}
 {/if}
