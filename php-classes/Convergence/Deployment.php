@@ -171,4 +171,60 @@ class Deployment extends \ActiveRecord
             call_user_func(static::$onAfterDeployment, $this, $StagingSite, $ProdSite);
         }
     }
+
+    /*
+     * Returns the available update for each site in the deployment
+     *
+     * @return array
+     */
+    public function getFileSystemSummary()
+    {
+        $results = [];
+        $Site = Site::getByWhere([
+            'DeploymentID' => $this->ID,
+            'ParentSiteID' => $this->ParentSiteID
+        ]);
+
+        while ($Site) {
+            array_push($results, [
+                'site' => $Site,
+                'results' => $Site->getFileSystemSummary()
+            ]);
+
+            $Site = Site::getByWhere([
+                'DeploymentID' => $this->ID,
+                'ParentSiteID' => $Site->ID
+            ]);
+        }
+
+        return $results;
+    }
+
+    /*
+     * Updates the file system of all sites
+     *
+     * @return array
+     */
+    public function updateFileSystem()
+    {
+        $results = [];
+        $Site = Site::getByWhere([
+            'DeploymentID' => $this->ID,
+            'ParentSiteID' => $this->ParentSiteID
+        ]);
+
+        while ($Site) {
+            array_push($results, [
+                'site' => $Site,
+                'results' => $Site->updateFileSystem()
+            ]);
+
+            $Site = Site::getByWhere([
+                'DeploymentID' => $this->ID,
+                'ParentSiteID' => $Site->ID
+            ]);
+        }
+
+        return $results;
+    }
 }
