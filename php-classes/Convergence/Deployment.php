@@ -63,17 +63,42 @@ class Deployment extends \ActiveRecord
         $this->Status = 'provisioning';
         $this->save();
 
-        // Create unique handle
-        $hostname = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $this->Label)));
-        $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, 14));
+        // Determine base hostname
+        if (static::$defaultHostname) {
+            $baseHostname = static::$defaultHostname;
+        } else {
+            $baseHostname = $_SERVER['HTTP_HOST'];
+        }
 
-        // Set up staging params
+        // Generate unique handle
+        $len = 14;
+        $hostname = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $this->Label)));
+        $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len));
+        while ($handle > 14) {
+            $len--;
+            $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len));
+        }
+
+        // Set up staging configs
         $stagingConfig = [
             'handle' => $handle . '-s',
             'hostnames' => [],
             'inheritance_key' => '',
             'label' => $this->Label . ' (Staging)'
         ];
+
+        // Generate unique hostname
+        $labelSanitized = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $this->Label)));
+        $primaryHostname = $labelSanitized . '.' . $baseHostname;
+        $ExistingHostname = Hostname::getByField('Hostname', $primaryHostname);
+        $cnt = 1;
+        while ($ExistingHostname) {
+            $primaryHostname = $labelSanitized . $cnt . '.' . $baseHostname;
+            $ExistingHostname = Hostname::getByField('Hostname', $primaryHostname);
+            $cnt++;
+        }
+
+        $stagingConfig['primary_hostname'] = 'staging.' . $primaryHostname;
 
         // Set the parent site configs
         if ($this->ParentSite) {
@@ -83,16 +108,6 @@ class Deployment extends \ActiveRecord
             $stagingConfig['parent_hostname'] = static::$defaultParentHostname;
             $stagingConfig['parent_key'] = static::$defaultParentInheritanceKey;
         }
-
-        // Determine base hostname
-        if (static::$defaultHostname) {
-            $baseHostname = static::$defaultHostname;
-        } else {
-            $baseHostname = $_SERVER['HTTP_HOST'];
-        }
-
-        // Set staging hostname
-        $stagingConfig['primary_hostname'] = 'staging.' . $hostname . '.' . $baseHostname;
 
         // On before staging deploy
         if (is_callable(static::$onBeforeStagingDeployment)) {
@@ -124,7 +139,7 @@ class Deployment extends \ActiveRecord
             'label' => $this->Label,
             'parent_hostname' => $StagingSite->PrimaryHostname->Hostname,
             'parent_key' => $StagingSite->InheritanceKey,
-            'primary_hostname' => $hostname . '.' . $baseHostname
+            'primary_hostname' => $primaryHostname
         ];
 
         // On before production deploy
