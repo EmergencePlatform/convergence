@@ -7,7 +7,8 @@
     <div class='btn-toolbar pull-right'>
         <div class='btn-group'>
             <a href="/{$data->getUrl('edit')}" class="btn btn-primary">{_ "Edit Site"}</a>
-            <a href="/{Convergence\Site::$collectionRoute}" class="btn btn-success">{_ "All Sites"}</a>
+            <a href="/{$data->getUrl('update')}" class="btn btn-success">{_ "Update Site"}</a>
+            <a href="/{Convergence\Site::$collectionRoute}" class="btn btn-info">{_ "All Sites"}</a>
         </div>
     </div>
     <h1>Site: {$data->Label}</h1>
@@ -60,12 +61,6 @@
                 </tr>
             </tbody>
         </table>
-        <h1>File System Summary</h1>
-        <div class="btn-toolbar">
-            <a href="/{$data->getUrl('edit')}" class="btn btn-primary">{_ "Load Summary"}</a>
-            <a href="/sites" class="btn btn-success">{_ "Update File System"}</a>
-            <a href="/sites" class="btn btn-success">{_ "Update Local Cursor"}</a>
-        </div>
     </div>
 </div>
 {/block}
