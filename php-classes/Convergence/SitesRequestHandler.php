@@ -17,8 +17,6 @@ class SitesRequestHandler extends \RecordsRequestHandler
     {
         switch ($action ? $action : $action = static::shiftPath())
         {
-            case 'update':
-                return static::handleSystemUpdateRequest();
             case 'update-status':
                 return static::handleUpdateStatusRequest();
             default:
@@ -98,119 +96,6 @@ class SitesRequestHandler extends \RecordsRequestHandler
                 'label' => $Record->Label,
                 'primary_hostname' => $Record->PrimaryHostname->Hostname
             ], 'PATCH');
-        }
-    }
-
-
-
-
-    public static function handleSystemUpdateRequest()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            \JSON::respond([
-                'success' => false,
-                'error' => 'POST Request Required'
-            ]);
-        }
-
-        set_time_limit(0);
-
-        if (!empty($_POST['level'])) {
-            $level = intval($_POST['level']);
-        } else {
-            $level = 0;
-        }
-
-        // All site
-        if ($level == 0) {
-
-            $sites = Site::getAll();
-            foreach ($sites as $Site) {
-                $Site->Updating = 1;
-                $Site->save();
-            }
-
-        } else {
-
-            $sites = Site::getAllByWhere(['ParentSiteID' => 0]);
-
-            // Skeleton Site
-            if ($level == 1) {
-
-                foreach ($sites as $Site) {
-                    $Site->Updating = 1;
-                    $Site->save();
-                }
-
-                $sitesToUpdate = $sites;
-
-            } else {
-
-                $parentIDs = [];
-                foreach ($sites as $Site) {
-                    array_push($parentIDs, $Site->ID);
-                }
-
-                $stagingSites = Site::getChildren($parentIDs);
-
-                // Staging sites
-                if ($level == 2) {
-
-                    foreach ($stagingSites as $Site) {
-                        $Site->Updating = 1;
-                        $Site->save();
-                    }
-
-                    $sitesToUpdate = $stagingSites;
-
-                // Production sites
-                } else {
-                    $stagingIDs = [];
-                    foreach ($stagingSites as $Site) {
-                        array_push($stagingIDs, $Site->ID);
-                    }
-
-                    $productionSites = Site::getChildren($stagingIDs);
-
-                    foreach ($productionSites as $Site) {
-                        $Site->Updating = 1;
-                        $Site->save();
-                    }
-
-                    $sitesToUpdate = $productionSites;
-                }
-            }
-        }
-
-        // Finish request without exiting
-        \JSON::respond(['success' => true], false);
-
-        // Update all sites
-        if ($level == 0) {
-
-            // Get all top level sites
-            $sites = \Convergence\Site::getAllByWhere(['ParentSiteID' => 0]);
-            $parentIDs = [];
-
-            // Update all parent sites
-            foreach ($sites as $Site) {
-                $Site->updateFileSystem();
-                array_push($parentIDs, $Site->ID);
-            }
-
-            // Recursively update child sites
-            while ($childSites = Site::getUpdateQueue($parentIDs)) {
-                foreach ($childSites as $Site) {
-                    $Site->updateFileSystem();
-                    array_push($parentIDs, $Site->ID);
-                }
-            }
-
-        // Update white listed sites
-        } else {
-            foreach ($sitesToUpdate as $Site) {
-                $Site->updateFileSystem();
-            }
         }
     }
 
