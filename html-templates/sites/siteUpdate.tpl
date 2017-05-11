@@ -31,8 +31,8 @@
     <h1>{$data->Label} File System</h1>
 </div>
 
-{if $updated == true}
-    <div class="alert alert-success">{_ "Site updated"}</div>
+{if $data->Updating == true}
+    <div class="alert alert-info">{_ "Site is updating"}</div>
 {/if}
 
 <div class="row">

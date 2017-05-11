@@ -158,9 +158,77 @@ class Site extends \ActiveRecord
      */
     public function requestFileSystemUpdate()
     {
-        return $this->executeRequest('maintenance', [[
+        // Create maintenance request
+        $result = $this->executeRequest('maintenance', [[
             'action' => 'vfs-update'
         ]]);
+
+        // Stash the uid in the cache
+        $pendingJobsKey = 'site-' . $this->ID . '-pending';
+        $pendingJobs = \Cache::fetch($pendingJobsKey);
+        if (!$pendingJobs) {
+            $pendingJobs = [$result['job']['uid']];
+        } else {
+            array_push($pendingJobs, $result['job']['uid']);
+        }
+
+        \Cache::store($pendingJobsKey, $pendingJobs, 3600);
+
+        return $result;
+    }
+
+    public function syncFileSystemUpdates()
+    {
+        $jobs = $this->getJobsSummary();
+        $pendingJobsKey = 'site-' . $this->ID . '-pending';
+        $pendingJobs = \Cache::fetch($pendingJobsKey);
+        $updatedPendingJobs = [];
+
+        // Process all pending jobs
+        if ($pendingJobs) {
+            foreach ($pendingJobs as $pendingJobID) {
+                $matched = false;
+
+                if ($jobs['jobs'] !== false) {
+
+                    // Find matching job
+                    foreach ($jobs['jobs'] as $job) {
+
+                        if ($job['uid'] == $pendingJobID) {
+
+                            if ($job['status'] == 'completed') {
+
+                                // Process command specific logic
+                                foreach($job['commands'] as $command) {
+
+                                    // Update cursors if vfs-update command was processed
+                                    if ($command['action'] == 'vfs-update') {
+                                        $this->ParentCursor = $command['result']['parentCursor'];
+                                        $this->LocalCursor = $command['result']['localCursor'];
+                                        $this->Updating = false;
+                                        $this->save();
+                                    }
+                                }
+
+                            // Add uid back for next time
+                            } else {
+                                array_push($updatedPendingJobs, $job['uid']);
+                            }
+
+                            $matched = true;
+                        }
+                    }
+                }
+
+                // Update site if job was lost
+                if (!$matched && $this->Updateing == true) {
+                    $this->Updateing = false;
+                    $this->save();
+                }
+            }
+        }
+
+        \Cache::store($pendingJobsKey, $updatedPendingJobs, 3600);
     }
 
     public function getFileSystemSummary()
