@@ -110,13 +110,20 @@ class SitesRequestHandler extends \RecordsRequestHandler
     public static function handleUpdateSiteFileSystemRequest($Record)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $summary = $Record->updateFileSystem();
+            if (!empty($_POST['updatevfs'])) {
+                $Record->requestFileSystemUpdate();
+            } else {
+                $Record->requestFileSystemSummary();
+            }
         }
+
+        $jobs = $Record->getJobsSummary();
 
         static::respond('sites/siteUpdate', [
             'success' => true,
             'data' => $Record,
-            'summary' => $summary
+            'summary' => $summary,
+            'jobs' => $jobs
         ]);
     }
 

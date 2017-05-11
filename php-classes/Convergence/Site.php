@@ -110,6 +110,59 @@ class Site extends \ActiveRecord
         return $this->Host->executeRequest('/sites/' . $this->Handle . '/' . $action, $method, $request);
     }
 
+    /*
+     * Get list of jobs from memory
+     *
+     * @return array
+     */
+    public function getJobsSummary()
+    {
+        $jobsRequest = $this->executeRequest('maintenance', [], 'GET');
+
+        // Sort jobs if available
+        if ($jobsRequest['jobs'] !== false) {
+            usort($jobsRequest['jobs'], function($a, $b) {
+                if ($a['completed'] == $b['completed']) {
+                    return 0;
+                }
+                if (!$a['completed']) {
+                    return -1;
+                } elseif (!$b['completed']) {
+                    return 1;
+                }
+                return ($a['completed'] > $b['completed']) ? -1 : 1;
+            });
+        }
+
+        return $jobsRequest;
+    }
+
+    /*
+     * Create maintence request to retrieve the file system summary
+     *
+     * @return array
+     */
+    public function requestFileSystemSummary()
+    {
+        $result = $this->executeRequest('maintenance', [[
+            'action' => 'vfs-summary'
+        ]]);
+
+        return $result;
+    }
+
+    /*
+     * Create maintence request to update the file system
+     *
+     * @return array
+     */
+    public function requestFileSystemUpdate()
+    {
+        return $this->executeRequest('maintenance', [[
+            'action' => 'vfs-update'
+        ]]);
+    }
+
     public function getFileSystemSummary()
     {
         $key = $this->InheritanceKey;
