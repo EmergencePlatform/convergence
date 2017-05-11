@@ -152,7 +152,7 @@ class Site extends \ActiveRecord
     }
 
     /*
-     * Create maintence request to update the file system
+     * Create maintenance request to update the file system
      *
      * @return array
      */
@@ -177,6 +177,11 @@ class Site extends \ActiveRecord
         return $result;
     }
 
+    /*
+     * Update sites coorelated with pending job updates
+     *
+     * @return array
+     */
     public function syncFileSystemUpdates()
     {
         $jobs = $this->getJobsSummary();
@@ -229,6 +234,8 @@ class Site extends \ActiveRecord
         }
 
         \Cache::store($pendingJobsKey, $updatedPendingJobs, 3600);
+
+        return $updatedPendingJobs;
     }
 
     public function getFileSystemSummary()
