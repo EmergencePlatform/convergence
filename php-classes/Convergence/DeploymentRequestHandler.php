@@ -37,13 +37,20 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
     public static function handleUpdateSiteFileSystemRequest($Record)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $summary = $Record->updateFileSystem();
+            if (!empty($_POST['updatevfs'])) {
+                $Record->requestFileSystemUpdates();
+            } else {
+                $Record->requestFileSystemSummary();
+            }
         }
+
+        $Record->syncFileSystemUpdates();
+        $jobs = $Record->getDeploymentJobs();
 
         static::respond('deployments/deploymentUpdate', [
             'success' => true,
             'data' => $Record,
-            'summary' => $summary
+            'jobs' => $jobs,
         ]);
     }
 

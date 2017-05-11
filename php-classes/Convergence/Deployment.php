@@ -173,11 +173,11 @@ class Deployment extends \ActiveRecord
     }
 
     /*
-     * Returns the available update for each site in the deployment
+     * Updates the file system of all sites
      *
      * @return array
      */
-    public function getFileSystemSummary()
+    public function requestFileSystemUpdates()
     {
         $results = [];
         $Site = Site::getByWhere([
@@ -186,10 +186,9 @@ class Deployment extends \ActiveRecord
         ]);
 
         while ($Site) {
-            array_push($results, [
-                'site' => $Site,
-                'results' => $Site->getFileSystemSummary()
-            ]);
+            $Site->requestFileSystemUpdate();
+            $Site->Updating = true;
+            $Site->save();
 
             $Site = Site::getByWhere([
                 'DeploymentID' => $this->ID,
@@ -201,30 +200,42 @@ class Deployment extends \ActiveRecord
     }
 
     /*
-     * Updates the file system of all sites
+     * Creates a maintenance request for each site's summary
+     *
+     * @return void
+     */
+    public function requestFileSystemSummary()
+    {
+        foreach ($this->Sites as $Site) {
+            $Site->requestFileSystemSummary();
+        }
+    }
+
+    /*
+     * Gets all active jobs for the deployment's sites
      *
      * @return array
      */
-    public function updateFileSystem()
+    public function getDeploymentJobs()
     {
         $results = [];
-        $Site = Site::getByWhere([
-            'DeploymentID' => $this->ID,
-            'ParentSiteID' => $this->ParentSiteID
-        ]);
 
-        while ($Site) {
-            array_push($results, [
-                'site' => $Site,
-                'results' => $Site->updateFileSystem()
-            ]);
-
-            $Site = Site::getByWhere([
-                'DeploymentID' => $this->ID,
-                'ParentSiteID' => $Site->ID
-            ]);
+        foreach ($this->Sites as $Site) {
+            $results[$Site->ID] = $Site->getJobsSummary();
         }
 
         return $results;
+    }
+
+    /*
+     * Syncs the file system for all sites
+     *
+     * @return void
+     */
+    public function syncFileSystemUpdates()
+    {
+        foreach ($this->Sites as $Site) {
+            $Site->syncFileSystemUpdates();
+        }
     }
 }
