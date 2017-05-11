@@ -92,7 +92,7 @@ class SitesRequestHandler extends \RecordsRequestHandler
         } else {
             // Pull into an event handler
             // https://github.com/SlateFoundation/slate-cbl/blob/develop/event-handlers/Slate/CBL/Demonstrations/DemonstrationSkill/afterRecordSave/50_complete-competency.php
-            $Record->executeRequest([
+            $Record->executeRequest('', [
                 'label' => $Record->Label,
                 'primary_hostname' => $Record->PrimaryHostname->Hostname
             ], 'PATCH');

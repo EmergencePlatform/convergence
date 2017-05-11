@@ -105,9 +105,9 @@ class Site extends \ActiveRecord
         }
     }
     
-    public function executeRequest($request, $method = 'POST')
+    public function executeRequest($action = '', $request, $method = 'POST')
     {
-        return $this->Host->executeRequest('/sites/' . $this->Handle . '/php-shell', $method, $request);
+        return $this->Host->executeRequest('/sites/' . $this->Handle . '/' . $action, $method, $request);
     }
 
     public function getFileSystemSummary()
@@ -116,7 +116,7 @@ class Site extends \ActiveRecord
         $hostname = $this->PrimaryHostname->Hostname;
         $cursor = $this->ParentCursor;
         $code = "Emergence\SiteAdmin\SiteUpdater::handleFileSystemSummary('$hostname', '$key', $cursor);";
-        $response = $this->Host->executeRequest('/sites/' . $this->Handle . '/php-shell', 'POST', $code);
+        $response = $this->Host->executeRequest('php-shell', '/sites/' . $this->Handle . '/php-shell', 'POST', $code);
         $response = json_decode($response, true);
         return $response;
     }
@@ -129,7 +129,7 @@ class Site extends \ActiveRecord
 
         // Fire update site request
         $code = "Emergence\SiteAdmin\SiteUpdater::handleUpdateSite('$hostname', '$key', $cursor);";
-        $response = $this->executeRequest($code);
+        $response = $this->executeRequest('php-shell', $code);
         $response = json_decode($response, true);
 
         // Update Site with cursors and updating status
@@ -150,7 +150,7 @@ class Site extends \ActiveRecord
     public function updateLocalCursor()
     {
         $code = "Emergence\SiteAdmin\SiteUpdater::handleGetLocalCursor();";
-        $response = $this->executeRequest($code);
+        $response = $this->executeRequest('php-shell', $code);
         $response = json_decode($response, true);
         $this->LocalCursor = $response['localCursor'];
         $this->save();
@@ -221,6 +221,6 @@ class Site extends \ActiveRecord
         $userCode .= '$user->save();';
         $userCode .= 'endforeach;';
 
-        return $this->Host->executeRequest('/sites/'.$this->Handle.'/php-shell', 'POST', $userCode);
+        return $this->executeRequest('php-shell', 'POST', $userCode);
     }
 }
