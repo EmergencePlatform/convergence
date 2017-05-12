@@ -120,7 +120,7 @@ class Site extends \ActiveRecord
         $jobsRequest = $this->executeRequest('maintenance', [], 'GET');
 
         // Sort jobs if available
-        if ($jobsRequest['jobs'] !== false) {
+        if ($jobsRequest && $jobsRequest['jobs'] !== false) {
             usort($jobsRequest['jobs'], function($a, $b) {
                 if ($a['completed'] == $b['completed']) {
                     return 0;
@@ -194,7 +194,7 @@ class Site extends \ActiveRecord
             foreach ($pendingJobs as $pendingJobID) {
                 $matched = false;
 
-                if ($jobs['jobs'] !== false) {
+                if ($jobs && $jobs['jobs'] !== false) {
 
                     // Find matching job
                     foreach ($jobs['jobs'] as $job) {
