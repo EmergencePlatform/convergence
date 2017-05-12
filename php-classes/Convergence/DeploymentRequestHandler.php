@@ -19,6 +19,8 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
         {
             case 'update':
                 return static::handleSystemUpdateRequest();
+            case 'update-status':
+                return static::handleUpdateStatusRequest();
             default:
                 return parent::handleRecordsRequest($action);
         }
@@ -110,32 +112,73 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
         // Finish request without exiting
         \JSON::respond(['success' => true], false);
 
-        foreach ($deployments as $Deployment) {
+        $deploymentIDs = Deployment::getUpdatingDeploymentIDs();
+        $pendingDeployments = [];
+        $maxQueue = ($level == 0) ? 10 : 20;
 
-            if ($level == 0) {
-                $Deployment->updateFileSystem();
+        while ($deploymentIDs) {
 
-            } else {
-
-                $StagingSite = Site::getByWhere([
-                    'DeploymentID' => $Deployment->ID,
-                    'ParentSiteID' => $Deployment->ParentSiteID
-                ]);
-
-                // Only update the staging site
-                if ($level == 1) {
-                    $StagingSite->updateFileSystem();
-
-                // Only update the production site
-                } else {
-
-                    $ProductionSite = Site::getByWhere([
-                        'DeploymentID' => $Deployment->ID,
-                        'ParentSiteID' => $StagingSite->ID
-                    ]);
-                    $ProductionSite->updateFileSystem();
+            // Prune pending deployments that are no longer updating
+            foreach ($pendingDeployments as $pendingID) {
+                if (array_search($pendingID, $deploymentIDs) !== false) {
+                    $Deployment = Deployment::getByID($deploymentID);
+                    $Deployment->syncFileSystemUpdates();
+                    unset($pendingDeployments[$pendingID]);
                 }
             }
+
+            // Init deployment updates
+            foreach ($deploymentIDs as $deploymentID) {
+
+                $Deployment = Deployment::getByID($deploymentID);
+
+                // Sync file system for pending deployments
+                if (in_array($Deployment->ID, $pendingDeployments)) {
+                    $Deployment->syncFileSystemUpdates();
+
+                // Add up to 10 or 20 deployements to the pending queue at once
+                } elseif (count($pendingDeployments) <= $maxQueue) {
+
+                    if ($level == 0) {
+                        $Deployment->requestFileSystemUpdates();
+
+                    } else {
+
+                        $StagingSite = Site::getByWhere([
+                            'DeploymentID' => $Deployment->ID,
+                            'ParentSiteID' => $Deployment->ParentSiteID
+                        ]);
+
+                        // Only update the staging site
+                        if ($level == 1) {
+                            $StagingSite->requestFileSystemUpdate();
+
+                        // Only update the production site
+                        } else {
+                            $ProductionSite = Site::getByWhere([
+                                'DeploymentID' => $Deployment->ID,
+                                'ParentSiteID' => $StagingSite->ID
+                            ]);
+                            $ProductionSite->requestFileSystemUpdate();
+                        }
+                    }
+
+                    array_push($pendingDeployments, $Deployment->ID);
+                } else {
+                    break;
+                }
+            }
+
+            sleep(1);
+            $deploymentIDs = Deployment::getUpdatingDeploymentIDs();
         }
+    }
+
+    public static function handleUpdateStatusRequest()
+    {
+        \JSON::respond([
+            'success' => true,
+            'updating' => Site::getUpdateProgress()
+        ]);
     }
 }

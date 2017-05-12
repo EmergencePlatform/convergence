@@ -108,7 +108,7 @@
         var pollProgress = function() {
             $.ajax({
                 type: 'POST',
-                url: '/sites/update-status'
+                url: '/deployments/update-status'
             }).done(function(data) {
                 setProgress(data.updating);
                 if (data.updating == 100) {
