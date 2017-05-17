@@ -51,8 +51,10 @@
             <table class="table table-condensed">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>UID</th>
                         <th>Status</th>
+                        <th>Received</th>
+                        <th>Started</th>
                         <th>Completed</th>
                         <th>Action</th>
                         <th></th>
@@ -63,28 +65,28 @@
                         <tr data-toggle="collapse" data-target="#job{$dwoo.foreach.default.index}" class="accordion-toggle">
                             <td>{$job['uid']}</td>
                             <td>{$job['status']}</td>
-                            <td>{date('g:i:s a Y-m-d', $job['completed']/1000)}</td>
-                            <td>{$job['commands'][0]['action']}</td>
+                            <td>{date('g:i:s a', $job['received']/1000)}</td>
+                            <td>{if $job['started']}{date('g:i:s a', $job['started']/1000)}{/if}</td>
+                            <td>{if $job['completed']}{date('g:i:s a', $job['completed']/1000)}{/if}</td>
+                            <td>{$job['command']['action']}</td>
                             <td><a href="#">Click for Results</td>
                         </tr>
                         <tr>
-                            <td colspan="5" class="hiddenRow">
+                            <td colspan="7" class="hiddenRow">
                                 <div class="accordian-body collapse" id="job{$dwoo.foreach.default.index}">
-                                    {foreach item=command from=$job['commands']}
-                                        <h4>Action: {$command['action']}</h4>
-                                        {if $command['action'] == 'vfs-summary'}
-                                            <h5>Local Cursor: {$command['result']['localCursor']}</h5>
-                                            <h5>Parent Cursor: {$command['result']['parentCursor']}</h5>
-                                            <h5>New Files</h5>
-                                            {dump $command['result']['new']}
-                                            <h5>Updated Files</h5>
-                                            {dump $command['result']['updated']}
-                                            <h5>Deleted Files</h5>
-                                            {dump $command['result']['deleted']}
-                                        {else}
-                                            {dump $command}
-                                        {/if}
-                                    {/foreach}
+                                    <h4>Action: {$job['command']['action']}</h4>
+                                    {if $job['command']['action'] == 'vfs-summary'}
+                                        <h5>Local Cursor: {$job['command']['result']['localCursor']}</h5>
+                                        <h5>Parent Cursor: {$job['command']['result']['parentCursor']}</h5>
+                                        <h5>New Files</h5>
+                                        {dump $job['command']['result']['new']}
+                                        <h5>Updated Files</h5>
+                                        {dump $job['command']['result']['updated']}
+                                        <h5>Deleted Files</h5>
+                                        {dump $job['command']['result']['deleted']}
+                                    {else}
+                                        {dump $job['command']}
+                                    {/if}
                                 </div>
                             </td>
                         </tr>
