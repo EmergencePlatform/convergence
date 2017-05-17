@@ -238,43 +238,6 @@ class Site extends \ActiveRecord
         return $updatedPendingJobs;
     }
 
-    public function getFileSystemSummary()
-    {
-        $key = $this->InheritanceKey;
-        $hostname = $this->PrimaryHostname->Hostname;
-        $cursor = $this->ParentCursor;
-        $code = "Emergence\SiteAdmin\SiteUpdater::handleFileSystemSummary('$hostname', '$key', $cursor);";
-        $response = $this->Host->executeRequest('php-shell', '/sites/' . $this->Handle . '/php-shell', 'POST', $code);
-        $response = json_decode($response, true);
-        return $response;
-    }
-
-    public function updateFileSystem()
-    {
-        $hostname = $this->PrimaryHostname->Hostname;
-        $key = $this->InheritanceKey;
-        $cursor = intval($this->ParentCursor);
-
-        // Fire update site request
-        $code = "Emergence\SiteAdmin\SiteUpdater::handleUpdateSite('$hostname', '$key', $cursor);";
-        $response = $this->executeRequest('php-shell', $code);
-        $response = json_decode($response, true);
-
-        // Update Site with cursors and updating status
-        if ($response['parentCursor'] !== 0) {
-            $this->ParentCursor = $response['parentCursor'];
-        }
-        $this->LocalCursor = $response['localCursor'];
-        $this->Updating = false;
-        $this->save();
-
-        // Clear vfs cache to ensures all file are available
-        // @todo push to the kernel
-        // $this->clearVFSCache();
-
-        return $response;
-    }
-
     public function updateLocalCursor()
     {
         $code = "Emergence\SiteAdmin\SiteUpdater::handleGetLocalCursor();";
