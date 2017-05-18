@@ -62,7 +62,7 @@ class Site extends \ActiveRecord
         'SecondaryHostnames' => [
             'type' => 'one-many',
             'class' => Hostname::class,
-           // @todo 'conditions' => 
+           // @todo 'conditions' =>
         ],
         'ParentSite' => [
             'type' => 'one-one',
@@ -175,10 +175,10 @@ class Site extends \ActiveRecord
         // Add new job to queue
         $jobsQueue = $this->Host->getJobsQueue();
 
-        if (!is_array($jobsQueue[$this->ID])) {
-            $jobsQueue[$this->ID] = [$result['jobs'][0]];
+        if (!is_array($jobsQueue[$this->Handle])) {
+            $jobsQueue[$this->Handle] = [$result['jobs'][0]];
         } else {
-            array_push($jobsQueue[$this->ID], $result['jobs'][0]);
+            array_push($jobsQueue[$this->Handle], $result['jobs'][0]);
         }
 
         // Update jobs queue for host

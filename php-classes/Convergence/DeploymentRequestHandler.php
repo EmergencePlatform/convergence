@@ -30,13 +30,13 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
     {
         switch ($action ? $action : $action = static::shiftPath()) {
             case 'update':
-                return static::handleUpdateSiteFileSystemRequest($Record);
+                return static::handleUpdateFileSystemRequest($Record);
             default:
                 return parent::handleRecordRequest($Record, $action);
         }
     }
 
-    public static function handleUpdateSiteFileSystemRequest($Record)
+    public static function handleUpdateFileSystemRequest($Record)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!empty($_POST['updatevfs'])) {
@@ -65,13 +65,12 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
             ]);
         }
 
-        set_time_limit(0);
-
         // Get update level, 0 = all, 1 = staging, 2 = production
         $level = intval($_POST['level']);
 
         // Loop over all deployments
         $deployments = Deployment::getAll();
+        $jobsData = [];
 
         foreach ($deployments as $Deployment) {
 
@@ -81,6 +80,11 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
                 foreach ($Deployment->Sites as $Site) {
                     $Site->Updating = 1;
                     $Site->save();
+
+                    array_push($jobsData, [
+                        'handle' => $Site->Handle,
+                        'action' => 'vfs-update'
+                    ]);
                 }
 
             // Only set production or staging sites to updated
@@ -96,6 +100,11 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
                     $StagingSite->Updating = 1;
                     $StagingSite->save();
 
+                    array_push($jobsData, [
+                        'handle' => $StagingSite->Handle,
+                        'action' => 'vfs-update'
+                    ]);
+
                 // Only set the production sites as updating
                 } else {
                     $ProductionSite = Site::getByWhere([
@@ -105,80 +114,50 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
 
                     $ProductionSite->Updating = 1;
                     $ProductionSite->save();
+
+                    array_push($jobsData, [
+                        'handle' => $ProductionSite->Handle,
+                        'action' => 'vfs-update'
+                    ]);
                 }
             }
         }
 
-        // Finish request without exiting
+        // Create new jobs
+        if ($Host = Host::getAvailable()) {
+            $Host->submitBulkJobsRequest($jobsData);
+        }
+
         \JSON::respond(['success' => true], false);
-
-        $deploymentIDs = Deployment::getUpdatingDeploymentIDs();
-        $pendingDeployments = [];
-        $maxQueue = ($level == 0) ? 10 : 20;
-
-        while ($deploymentIDs) {
-
-            // Prune pending deployments that are no longer updating
-            foreach ($pendingDeployments as $pendingID) {
-                if (array_search($pendingID, $deploymentIDs) !== false) {
-                    $Deployment = Deployment::getByID($deploymentID);
-                    $Deployment->syncFileSystemUpdates();
-                    unset($pendingDeployments[$pendingID]);
-                }
-            }
-
-            // Init deployment updates
-            foreach ($deploymentIDs as $deploymentID) {
-
-                $Deployment = Deployment::getByID($deploymentID);
-
-                // Sync file system for pending deployments
-                if (in_array($Deployment->ID, $pendingDeployments)) {
-                    $Deployment->syncFileSystemUpdates();
-
-                // Add up to 10 or 20 deployements to the pending queue at once
-                } elseif (count($pendingDeployments) <= $maxQueue) {
-
-                    if ($level == 0) {
-                        $Deployment->requestFileSystemUpdates();
-
-                    } else {
-
-                        $StagingSite = Site::getByWhere([
-                            'DeploymentID' => $Deployment->ID,
-                            'ParentSiteID' => $Deployment->ParentSiteID
-                        ]);
-
-                        // Only update the staging site
-                        if ($level == 1) {
-                            $StagingSite->requestFileSystemUpdate();
-
-                        // Only update the production site
-                        } else {
-                            $ProductionSite = Site::getByWhere([
-                                'DeploymentID' => $Deployment->ID,
-                                'ParentSiteID' => $StagingSite->ID
-                            ]);
-                            $ProductionSite->requestFileSystemUpdate();
-                        }
-                    }
-
-                    array_push($pendingDeployments, $Deployment->ID);
-                } else {
-                    break;
-                }
-            }
-
-            sleep(1);
-            $deploymentIDs = Deployment::getUpdatingDeploymentIDs();
-        }
     }
 
+    /*
+     * Get percentage of site that are currently updating
+     *
+     * @return void
+     */
     public static function handleUpdateStatusRequest()
     {
+        // Process update queue
+        // @todo refactor for multiple hosts
+        if ($Host = Host::getAvailable()) {
+            $Host->syncJobsQueue();
+        }
+
+        try {
+            $progress = \DB::oneValue('
+                SELECT ((Select COUNT(*) from `%1$s` where Updating = 0) / count(*)) as Updating
+                FROM `%1$s`
+            ', [
+                Site::$tableName
+            ]);
+        } catch (\TableNotFoundException $e) {
+            $progress = 1;
+        }
+
         \JSON::respond([
             'success' => true,
-            'updating' => Site::getUpdateProgress()
+            'updating' => $progress * 100
         ]);
     }
 }

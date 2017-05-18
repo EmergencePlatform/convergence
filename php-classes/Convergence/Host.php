@@ -103,7 +103,7 @@ class Host extends \ActiveRecord
     public function executeRequest($path, $requestMethod = 'GET', $params = [], $headers = [])
     {
         $url = 'http://' . $this->Hostname . ':9083' . $path;
-        //\Debug::dumpVar($params, false, "$requestMethod $url");
+        //\Debug::dumpVar($params, false, "$requestMethod $url", false);
         //\Emergence\Mailer\Mailer::send('tyler@jarv.us', 'REQUEST', json_encode([$params, false, $requestMethod, $url]));
 
         // initialize cURL
@@ -152,6 +152,37 @@ class Host extends \ActiveRecord
     }
 
     /*
+     * Submit bulk jobs request and add jobs to queue
+     *
+     * @return array
+     */
+    public function submitBulkJobsRequest($jobsData)
+    {
+        // Submit bulk jobs request
+        $result = $this->executeRequest('/jobs', 'POST', $jobsData);
+
+        // Get current jobs queue
+        $jobsQueue = $this->getJobsQueue();
+
+        if ($result['jobs']) {
+
+            foreach ($result['jobs'] as $job) {
+
+                if (!is_array($jobsQueue[$job['handle']])) {
+                    $jobsQueue[$job['handle']] = [$job];
+                } else {
+                    array_push($jobsQueue[$job['handle']], $job);
+                }
+            }
+        }
+
+        // Update jobs queue for host
+        $this->updateJobsQueue($jobsQueue);
+
+        return $result;
+    }
+
+    /*
      * Returns current job queue
      *
      * @return array
@@ -174,5 +205,53 @@ class Host extends \ActiveRecord
     public function updateJobsQueue($queue)
     {
         \Cache::store('JobsQueue-' . $this->ID, $queue, 60*60);
+    }
+
+    /*
+     * Update sites after jobs have completed
+     *
+     * @return void
+     */
+    public function syncJobsQueue()
+    {
+        $jobsQueue = $this->getJobsQueue();
+        $activeJobs = $this->executeRequest('/jobs', 'GET')['jobs'];
+
+        foreach ($jobsQueue as $handle => $jobs) {
+
+            foreach ($jobs as $index => $job) {
+
+                // Find job queue in active jobs
+                if ($activeJobs[$handle][$job['uid']]) {
+
+                    if ($activeJobs[$handle][$job['uid']]['command']['action'] == 'vfs-update') {
+
+                        // Update site if vfs-update has completed or failed
+                        if (in_array($activeJobs[$handle][$job['uid']]['status'], ['completed', 'failed'])) {
+
+                            if ($Site = Site::getByField('Handle', $job['handle'])) {
+
+                                if ($activeJobs[$handle][$job['uid']]['command']['status'] == 'completed') {
+                                    $Site->ParentCursor = $command['result']['parentCursor'];
+                                    $Site->LocalCursor = $command['result']['localCursor'];
+                                }
+
+                                $Site->Updating = false;
+                                $Site->save();
+                            }
+
+                            // Remove job from queue
+                            unset($jobsQueue[$this->ID][$index]);
+                        }
+                    }
+
+                // Remove orphaned job queue jobs
+                } else {
+                    unset($jobsQueue[$handle][$index]);
+                }
+            }
+        }
+
+        $this->updateJobsQueue($jobsQueue);
     }
 }
