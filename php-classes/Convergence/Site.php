@@ -104,10 +104,19 @@ class Site extends \ActiveRecord
             $this->PrimaryHostname->save(false);
         }
     }
-    
-    public function executeRequest($action = '', $request, $method = 'POST')
+
+    /*
+     * Execute request for given site
+     *
+     * @params string $path
+     * @params string $method
+     * @params array $requestData
+     * @params array $headers
+     * @return array
+     */
+    public function executeRequest($path = '', $method = 'POST', $requestData = [], $headers = [])
     {
-        return $this->Host->executeRequest('/sites/' . $this->Handle . '/' . $action, $method, $request);
+        return $this->Host->executeRequest('/sites/' . $this->Handle . '/' . $path, $method, $requestData, $headers);
     }
 
     /*
@@ -117,7 +126,7 @@ class Site extends \ActiveRecord
      */
     public function getJobsSummary()
     {
-        $jobsRequest = $this->executeRequest('maintenance', [], 'GET');
+        $jobsRequest = $this->executeRequest('jobs', 'GET');
 
         // Sort jobs if available
         if ($jobsRequest && $jobsRequest['jobs'] !== false) {
@@ -144,7 +153,7 @@ class Site extends \ActiveRecord
      */
     public function requestFileSystemSummary()
     {
-        $result = $this->executeRequest('maintenance', [[
+        $result = $this->executeRequest('jobs', 'POST', [[
             'action' => 'vfs-summary'
         ]]);
 
@@ -152,14 +161,14 @@ class Site extends \ActiveRecord
     }
 
     /*
-     * Create maintenance request to update the file system
+     * Create job request to update the file system
      *
      * @return array
      */
     public function requestFileSystemUpdate()
     {
-        // Create maintenance request
-        $result = $this->executeRequest('maintenance', [[
+        // Create job request
+        $result = $this->executeRequest('jobs', 'POST', [[
             'action' => 'vfs-update'
         ]]);
 
@@ -241,7 +250,7 @@ class Site extends \ActiveRecord
     public function updateLocalCursor()
     {
         $code = "Emergence\SiteAdmin\SiteUpdater::handleGetLocalCursor();";
-        $response = $this->executeRequest('php-shell', $code);
+        $response = $this->executeRequest('php-shell', 'POST', $code);
         $response = json_decode($response, true);
         $this->LocalCursor = $response['localCursor'];
         $this->save();

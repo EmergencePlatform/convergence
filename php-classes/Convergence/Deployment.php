@@ -180,13 +180,18 @@ class Deployment extends \ActiveRecord
     public function requestFileSystemUpdates()
     {
         $results = [];
+        $jobsData = [];
         $Site = Site::getByWhere([
             'DeploymentID' => $this->ID,
             'ParentSiteID' => $this->ParentSiteID
         ]);
 
         while ($Site) {
-            $Site->requestFileSystemUpdate();
+            array_push($jobsData, [
+                'handle' => $Site->Handle,
+                'action' => 'vfs-update'
+            ]);
+
             $Site->Updating = true;
             $Site->save();
 
@@ -196,7 +201,7 @@ class Deployment extends \ActiveRecord
             ]);
         }
 
-        return $results;
+        return $this->Host->executeRequest('/jobs', 'POST', $jobsData);
     }
 
     /*
@@ -206,9 +211,16 @@ class Deployment extends \ActiveRecord
      */
     public function requestFileSystemSummary()
     {
+        $jobsData = [];
+
         foreach ($this->Sites as $Site) {
-            $Site->requestFileSystemSummary();
+            array_push($maintenanceRequest, [
+                'handle' => $Site->Handle,
+                'action' => 'vfs-summary'
+            ]);
         }
+
+        $result = $this->Host->executeRequest('/jobs', 'POST', $jobsData);
     }
 
     /*

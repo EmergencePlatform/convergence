@@ -59,7 +59,7 @@ class Hostname extends \ActiveRecord
 
         if (!$this->isNew && $this->isFieldDirty('Hostname') && $this->SiteID) {
             $params = ['primary_hostname' => $this->Hostname];
-            $response = $this->Site->Host->executeRequest('/sites/' . $this->Site->Handle, 'PATCH', $params);
+            $response = $this->Site->executeRequest('', 'PATCH', $params);
         }
     }
 }
