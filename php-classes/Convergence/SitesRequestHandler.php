@@ -13,17 +13,6 @@ class SitesRequestHandler extends \RecordsRequestHandler
     public static $browseLimitDefault = 100;
     public static $browseOrder = ['ID' => 'ASC'];
 
-    public static function handleRecordsRequest($action = false)
-    {
-        switch ($action ? $action : $action = static::shiftPath())
-        {
-            case 'update-status':
-                return static::handleUpdateStatusRequest();
-            default:
-                return parent::handleRecordsRequest($action);
-        }
-    }
-
     public static function handleRecordRequest(\ActiveRecord $Record, $action = false)
     {
         switch ($action ? $action : $action = static::shiftPath()) {
@@ -97,14 +86,6 @@ class SitesRequestHandler extends \RecordsRequestHandler
                 'primary_hostname' => $Record->PrimaryHostname->Hostname
             ]);
         }
-    }
-
-    public static function handleUpdateStatusRequest()
-    {
-        \JSON::respond([
-            'success' => true,
-            'updating' => Site::getUpdateProgress()
-        ]);
     }
 
     public static function handleUpdateSiteFileSystemRequest($Record)
