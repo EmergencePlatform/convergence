@@ -131,15 +131,15 @@ class Site extends \ActiveRecord
         // Sort jobs if available
         if ($jobsRequest && $jobsRequest['jobs'] !== false) {
             usort($jobsRequest['jobs'], function($a, $b) {
-                if ($a['completed'] == $b['completed']) {
+                if ($a['received'] == $b['received']) {
                     return 0;
                 }
-                if (!$a['completed']) {
+                if (!$a['received']) {
                     return -1;
-                } elseif (!$b['completed']) {
+                } elseif (!$b['received']) {
                     return 1;
                 }
-                return ($a['completed'] > $b['completed']) ? -1 : 1;
+                return ($a['received'] > $b['received']) ? -1 : 1;
             });
         }
 
@@ -172,79 +172,75 @@ class Site extends \ActiveRecord
             'action' => 'vfs-update'
         ]]);
 
-        // Stash the uid in the cache
-        $pendingJobsKey = 'site-' . $this->ID . '-pending';
-        $pendingJobs = \Cache::fetch($pendingJobsKey);
-        if (!$pendingJobs) {
-            $pendingJobs = [$result['job']['uid']];
+        // Add new job to queue
+        $jobsQueue = $this->Host->getJobsQueue();
+
+        if (!is_array($jobsQueue[$this->ID])) {
+            $jobsQueue[$this->ID] = [$result['jobs'][0]];
         } else {
-            array_push($pendingJobs, $result['job']['uid']);
+            array_push($jobsQueue[$this->ID], $result['jobs'][0]);
         }
 
-        \Cache::store($pendingJobsKey, $pendingJobs, 3600);
+        // Update jobs queue for host
+        $this->Host->updateJobsQueue($jobsQueue);
 
         return $result;
     }
 
     /*
-     * Update sites coorelated with pending job updates
+     * Update sites based on pending job status
      *
-     * @return array
+     * @return void
      */
     public function syncFileSystemUpdates()
     {
-        $jobs = $this->getJobsSummary();
-        $pendingJobsKey = 'site-' . $this->ID . '-pending';
-        $pendingJobs = \Cache::fetch($pendingJobsKey);
-        $updatedPendingJobs = [];
+        $activeJobs = $this->getJobsSummary()['jobs'];
+        $jobsQueue = $this->Host->getJobsQueue();
 
-        // Process all pending jobs
-        if ($pendingJobs) {
-            foreach ($pendingJobs as $pendingJobID) {
-                $matched = false;
+        if (empty($jobsQueue[$this->ID])) {
+            return true;
+        }
 
-                if ($jobs && $jobs['jobs'] !== false) {
+        // Check each job assigned to site
+        foreach ($jobsQueue[$this->ID] as $index => $job) {
+            $jobFound = false;
 
-                    // Find matching job
-                    foreach ($jobs['jobs'] as $job) {
+            // Find the coorelated active job
+            foreach ($activeJobs as $activeJob) {
 
-                        if ($job['uid'] == $pendingJobID) {
+                if ($activeJob['uid'] == $job['uid']) {
+                    $jobFound = true;
 
-                            if ($job['status'] == 'completed') {
+                    if ($activeJob['command']['action'] == 'vfs-update') {
 
-                                // Process command specific logic
-                                foreach($job['commands'] as $command) {
+                        // Update site if vfs-update has completed or failed
+                        if (in_array($activeJob['status'], ['completed', 'failed'])) {
 
-                                    // Update cursors if vfs-update command was processed
-                                    if ($command['action'] == 'vfs-update') {
-                                        $this->ParentCursor = $command['result']['parentCursor'];
-                                        $this->LocalCursor = $command['result']['localCursor'];
-                                        $this->Updating = false;
-                                        $this->save();
-                                    }
-                                }
-
-                            // Add uid back for next time
-                            } else {
-                                array_push($updatedPendingJobs, $job['uid']);
+                            if ($activeJob['command']['status'] == 'completed') {
+                                $this->ParentCursor = $command['result']['parentCursor'];
+                                $this->LocalCursor = $command['result']['localCursor'];
                             }
 
-                            $matched = true;
+                            $this->Updating = false;
+                            $this->save();
+
+                            // Remove job from queue
+                            unset($jobsQueue[$this->ID][$index]);
                         }
                     }
                 }
+            }
 
-                // Update site if job was lost
-                if (!$matched && $this->Updateing == true) {
-                    $this->Updateing = false;
-                    $this->save();
-                }
+            // If job status isn't available, mark site as updated = false
+            if (!$jobFound && $this->Updateing) {
+                $this->Updating = false;
+                $this->save();
+                unset($jobsQueue[$this->ID][$index]);
             }
         }
 
-        \Cache::store($pendingJobsKey, $updatedPendingJobs, 3600);
-
-        return $updatedPendingJobs;
+        // Update jobs queue
+        $this->Host->updateJobsQueue($jobsQueue);
     }
 
     public function updateLocalCursor()

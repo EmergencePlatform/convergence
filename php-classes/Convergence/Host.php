@@ -150,4 +150,29 @@ class Host extends \ActiveRecord
 
         return $output;
     }
+
+    /*
+     * Returns current job queue
+     *
+     * @return array
+     */
+    public function getJobsQueue()
+    {
+        if (false === ($jobsQueue = \Cache::fetch('JobsQueue-' . $this->ID))) {
+            $jobsQueue = [];
+        }
+
+        return $jobsQueue;
+    }
+
+    /*
+     * Stores the provided job queue in cache
+     *
+     * @params array $queue
+     * @return void
+     */
+    public function updateJobsQueue($queue)
+    {
+        \Cache::store('JobsQueue-' . $this->ID, $queue, 60*60);
+    }
 }
