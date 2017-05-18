@@ -47,7 +47,7 @@
             </form>
         </div>
         <h2>Jobs <a href="" class="btn btn-primary">Refresh</a></h2>
-        {if $jobs['jobs'] !== false}
+        {if $jobs['jobs']}
             <table class="table table-condensed">
                 <thead>
                     <tr>
