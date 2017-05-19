@@ -174,7 +174,7 @@ class Deployment extends \ActiveRecord
     /*
      * Updates the file system of all sites
      *
-     * @return array
+     * @return void
      */
     public function requestFileSystemUpdates()
     {
@@ -200,7 +200,7 @@ class Deployment extends \ActiveRecord
             ]);
         }
 
-        return $this->Host->executeRequest('/jobs', 'POST', $jobsData);
+        $this->Host->submitBulkJobsRequest($jobsData);
     }
 
     /*
@@ -213,13 +213,13 @@ class Deployment extends \ActiveRecord
         $jobsData = [];
 
         foreach ($this->Sites as $Site) {
-            array_push($maintenanceRequest, [
+            array_push($jobsData, [
                 'handle' => $Site->Handle,
                 'action' => 'vfs-summary'
             ]);
         }
 
-        $result = $this->Host->executeRequest('/jobs', 'POST', $jobsData);
+        $this->Host->submitBulkJobsRequest($jobsData);
     }
 
     /*

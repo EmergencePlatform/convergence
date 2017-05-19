@@ -46,7 +46,7 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
             }
         }
 
-        $Record->syncFileSystemUpdates();
+        $Record->Host->syncJobsQueue();
         $jobs = $Record->getDeploymentJobs();
 
         static::respond('deployments/deploymentUpdate', [
