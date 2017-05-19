@@ -112,6 +112,7 @@
             }).done(function(data) {
                 setProgress(data.updating);
                 if (data.updating == 100) {
+                    window.clearInterval(progressTimer)
                     $('.update-complete').removeClass('hidden');
                 }
             });
@@ -125,7 +126,7 @@
 
         // Auto start progress timer on page load
         {if $progress != 100}
-            progressTimer = window.setInterval(pollProgress, 1000);
+            progressTimer = window.setInterval(pollProgress, 3000);
         {/if}
 
         $(document).ready(function() {
@@ -139,7 +140,7 @@
                     }
                 }).done(function(data) {
                     if (typeof(progressTimer) == "undefined") {
-                        progressTimer = window.setInterval(pollProgress, 1000);
+                        progressTimer = window.setInterval(pollProgress, 3000);
                         setProgress(0);
                     }
                 });
