@@ -31,6 +31,10 @@
     <div class="alert alert-success">{_ "Updated"}</div>
 {/if}
 
+{if $data->updateingSite()}
+    <div class="alert alert-danger">{_ "Sites are updating..."} <a href="/{$data->getUrl('update')}">Click to finalize update.</a></div>
+{/if}
+
 <div class="row">
     <div class="col-sm-12 col-md-6">
         <form method="POST" {if !$data->isPhantom}action="/deployments/{$data->ID}/edit"{/if}>

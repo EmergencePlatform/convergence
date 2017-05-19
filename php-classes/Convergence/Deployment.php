@@ -252,6 +252,24 @@ class Deployment extends \ActiveRecord
     }
 
     /*
+     * Determines if one or mutiple sites in deployment are currently updating
+     *
+     * @return bool
+     */
+    public function updateingSite()
+    {
+        if ($this->Sites) {
+            foreach ($this->Sites as $Site) {
+                if ($Site->Updating) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /*
      * Returns all deployments that have an updateing site
      *
      * @return array
