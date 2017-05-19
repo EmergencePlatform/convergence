@@ -197,12 +197,12 @@ class Site extends \ActiveRecord
         $activeJobs = $this->getJobsSummary()['jobs'];
         $jobsQueue = $this->Host->getJobsQueue();
 
-        if (empty($jobsQueue[$this->ID])) {
+        if (empty($jobsQueue[$this->Handle])) {
             return true;
         }
 
         // Check each job assigned to site
-        foreach ($jobsQueue[$this->ID] as $index => $job) {
+        foreach ($jobsQueue[$this->Handle] as $index => $job) {
             $jobFound = false;
 
             // Find the coorelated active job
@@ -225,17 +225,17 @@ class Site extends \ActiveRecord
                             $this->save();
 
                             // Remove job from queue
-                            unset($jobsQueue[$this->ID][$index]);
+                            unset($jobsQueue[$this->Handle][$index]);
                         }
                     }
                 }
             }
 
             // If job status isn't available, mark site as updated = false
-            if (!$jobFound && $this->Updateing) {
+            if (!$jobFound) {
                 $this->Updating = false;
                 $this->save();
-                unset($jobsQueue[$this->ID][$index]);
+                unset($jobsQueue[$this->Handle][$index]);
             }
         }
 

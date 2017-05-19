@@ -239,7 +239,7 @@ class Host extends \ActiveRecord
                             }
 
                             // Remove job from queue
-                            unset($jobsQueue[$this->ID][$index]);
+                            unset($jobsQueue[$handle][$index]);
                         }
                     }
 
