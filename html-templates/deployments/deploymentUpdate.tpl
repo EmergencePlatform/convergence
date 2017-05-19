@@ -33,7 +33,7 @@
 
 {foreach item=Site from=$data->Sites}
     {if $Site->Updating == true}
-        <div class="alert alert-success">{$Site->Handle} is Updateing</div>
+        <div class="alert alert-success">{$Site->Handle} is Updating</div>
     {/if}
 {/foreach}
 
