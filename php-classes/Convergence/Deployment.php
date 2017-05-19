@@ -158,13 +158,12 @@ class Deployment extends \ActiveRecord
             'ParentSiteID' => $StagingSite->ID
         ], true);
 
-        // Update both file systems
-        $StagingSite->updateFileSystem();
-        $ProdSite->updateFileSystem();
-
         // Update provisioning status
         $this->Status = 'available';
         $this->save();
+
+        // Update new site file systems
+        $this->requestFileSystemUpdates();
 
         // On after deployment
         if (is_callable(static::$onAfterDeployment)) {
