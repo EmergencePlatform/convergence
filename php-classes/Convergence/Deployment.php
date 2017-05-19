@@ -267,28 +267,4 @@ class Deployment extends \ActiveRecord
 
         return false;
     }
-
-    /*
-     * Returns all deployments that have an updateing site
-     *
-     * @return array
-     */
-    public static function getUpdatingDeploymentIDs()
-    {
-        try {
-            $ids = \DB::allValues('ID', '
-                select `%1$s`.ID from `%1$s`
-                join `%2$s` on `%2$s`.DeploymentID = `%1$s`.ID
-                WHERE `%2$s`.Updating = true
-                GROUP BY `%1$s`.ID
-            ', [
-                Deployment::$tableName,
-                Site::$tableName
-            ]);
-        } catch (\TableNotFoundException $e) {
-            $ids = [];
-        }
-
-        return $ids;
-    }
 }

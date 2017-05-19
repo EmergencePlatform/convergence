@@ -104,7 +104,6 @@ class Host extends \ActiveRecord
     {
         $url = 'http://' . $this->Hostname . ':9083' . $path;
         //\Debug::dumpVar($params, false, "$requestMethod $url", false);
-        //\Emergence\Mailer\Mailer::send('tyler@jarv.us', 'REQUEST', json_encode([$params, false, $requestMethod, $url]));
 
         // initialize cURL
         $ch = curl_init();
@@ -141,7 +140,6 @@ class Host extends \ActiveRecord
         curl_close($ch);
 
         //\Debug::dumpVar(['info' => $info, 'output' => $output], false, 'request executed');
-        //\Emergence\Mailer\Mailer::send('tyler@jarv.us', 'RESPONSE', json_encode(['info' => $info, 'output' => $output]));
 
         // return response
         if ($info['content_type'] == 'application/json' && (!isset($options['autoDecode']) || $options['autoDecode'])) {

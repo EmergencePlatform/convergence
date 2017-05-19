@@ -18,8 +18,6 @@ class SitesRequestHandler extends \RecordsRequestHandler
         switch ($action ? $action : $action = static::shiftPath()) {
             case 'update':
                 return static::handleUpdateSiteFileSystemRequest($Record);
-            case 'update-cursor':
-                return static::handleUpdateSiteCursorRequest($Record);
             default:
                 return parent::handleRecordRequest($Record, $action);
         }
@@ -109,11 +107,5 @@ class SitesRequestHandler extends \RecordsRequestHandler
             'summary' => $summary,
             'jobs' => $jobs
         ]);
-    }
-
-    public static function handleUpdateSiteCursorRequest($Record)
-    {
-        $Record->updateLocalCursor();
-        \Site::redirect('/sites/' . $Record->Handle . '?cursorupdated=1');
     }
 }

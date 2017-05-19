@@ -243,52 +243,8 @@ class Site extends \ActiveRecord
         $this->Host->updateJobsQueue($jobsQueue);
     }
 
-    public function updateLocalCursor()
-    {
-        $code = "Emergence\SiteAdmin\SiteUpdater::handleGetLocalCursor();";
-        $response = $this->executeRequest('php-shell', 'POST', $code);
-        $response = json_decode($response, true);
-        $this->LocalCursor = $response['localCursor'];
-        $this->save();
-    }
-
-    public static function getChildren($parentIDs = [])
-    {
-        try {
-            $children = \Convergence\Site::getAllByQuery('
-                SELECT * FROM %s
-                WHERE ParentSiteID IN ("%s")
-            ', [
-                Site::$tableName,
-                join($parentIDs, '","')
-            ]);
-        } catch (\TableNotFoundException $e) {
-            $children = [];
-        }
-
-        return $children;
-    }
-
-    public static function getUpdateQueue($parentIDs = [])
-    {
-        try {
-            $children = \Convergence\Site::getAllByQuery('
-                SELECT * FROM %s
-                WHERE Updating = 1
-                AND ParentSiteID IN ("%s")
-            ', [
-                Site::$tableName,
-                join($parentIDs, '","')
-            ]);
-        } catch (\TableNotFoundException $e) {
-            $children = [];
-        }
-
-        return $children;
-    }
-
     /*
-     *  Returns percentage of sites currently updateing
+     *  Returns percentage of sites currently updating
      *
      *  @return float
      */
@@ -308,6 +264,13 @@ class Site extends \ActiveRecord
         return $progress * 100;
     }
 
+    /*
+     *  Runs php-shell command to create one or multiple
+     *  user accounts for $this site.
+     *
+     *  @params array $data
+     *  @return array
+     */
     public function addUsers($data)
     {
         $userCode = '$userClass = User::getStaticDefaultClass();';

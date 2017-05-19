@@ -144,20 +144,11 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
             $Host->syncJobsQueue();
         }
 
-        try {
-            $progress = \DB::oneValue('
-                SELECT ((Select COUNT(*) from `%1$s` where Updating = 0) / count(*)) as Updating
-                FROM `%1$s`
-            ', [
-                Site::$tableName
-            ]);
-        } catch (\TableNotFoundException $e) {
-            $progress = 1;
-        }
+        $progress = Site::getUpdateProgress();
 
         \JSON::respond([
             'success' => true,
-            'updating' => $progress * 100
+            'updating' => $progress
         ]);
     }
 }
