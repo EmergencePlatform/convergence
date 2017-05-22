@@ -220,6 +220,13 @@ class Site extends \ActiveRecord
                         // Update site if vfs-update has completed or failed
                         if (in_array($activeJob['status'], ['completed', 'failed'])) {
 
+                            // Flag initial update
+                            if ($Site->ParentCursor == 0) {
+                                $initialUpdate = true;
+                            } else {
+                                $initialUpdate = false;
+                            }
+
                             if ($activeJob['status'] == 'completed') {
                                 $this->ParentCursor = $activeJob['command']['result']['parentCursor'];
                                 $this->LocalCursor = $activeJob['command']['result']['localCursor'];
@@ -227,6 +234,13 @@ class Site extends \ActiveRecord
 
                             $this->Updating = false;
                             $this->save();
+
+                            if ($initialUpdate) {
+                                \Emergence\EventBus::fireEvent('afterInitialVFSSync', $this->getRootClass(), array(
+                                    'Record' => $this,
+                                    'Status' => $activeJobs[$handle][$job['uid']]['status']
+                                ));
+                            }
 
                             // Remove job from queue
                             unset($jobsQueue[$this->Handle][$index]);

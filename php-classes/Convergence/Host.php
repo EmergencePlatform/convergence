@@ -213,6 +213,12 @@ class Host extends \ActiveRecord
     public function syncJobsQueue()
     {
         $jobsQueue = $this->getJobsQueue();
+
+        // Only continue if job queue has values
+        if (!$jobsQueue) {
+            return;
+        }
+
         $activeJobs = $this->executeRequest('/jobs', 'GET')['jobs'];
 
         foreach ($jobsQueue as $handle => $jobs) {
@@ -229,7 +235,15 @@ class Host extends \ActiveRecord
 
                             if ($Site = Site::getByField('Handle', $job['handle'])) {
 
+                                // Flag initial update
+                                if ($Site->ParentCursor == 0) {
+                                    $initialUpdate = true;
+                                } else {
+                                    $initialUpdate = false;
+                                }
+
                                 if ($activeJobs[$handle][$job['uid']]['status'] == 'completed') {
+
                                     $Site->ParentCursor = $activeJobs[$handle][$job['uid']]['command']['result']['parentCursor'];
                                     $Site->LocalCursor = $activeJobs[$handle][$job['uid']]['command']['result']['localCursor'];
 
@@ -237,27 +251,43 @@ class Host extends \ActiveRecord
                                     if ($activeJobs[$handle][$job['uid']]['command']['updateChild'] === true) {
 
                                         $ChildSite = Site::getByWhere([
-                                            'ParentSiteID' => $this->ID
+                                            'ParentSiteID' => $Site->ID
                                         ]);
 
                                         if ($ChildSite) {
                                             $ChildSite->requestFileSystemUpdate();
+
+                                            // Get updated jobs queue
+                                            $jobsQueue = $this->getJobsQueue();
                                         }
                                     }
                                 }
 
                                 $Site->Updating = false;
                                 $Site->save();
+
+                                if ($initialUpdate) {
+                                    \Emergence\EventBus::fireEvent('afterInitialVFSSync', $Site->getRootClass(), array(
+                                        'Record' => $Site,
+                                        'Status' => $activeJobs[$handle][$job['uid']]['status']
+                                    ));
+                                }
                             }
 
                             // Remove job from queue
                             unset($jobsQueue[$handle][$index]);
+                            if (count($jobsQueue[$handle]) == 0) {
+                                unset($jobsQueue[$handle]);
+                            }
                         }
                     }
 
                 // Remove orphaned job queue jobs
                 } else {
                     unset($jobsQueue[$handle][$index]);
+                    if (count($jobsQueue[$handle]) == 0) {
+                        unset($jobsQueue[$handle]);
+                    }
                 }
             }
         }
