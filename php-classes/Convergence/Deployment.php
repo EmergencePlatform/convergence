@@ -188,13 +188,15 @@ class Deployment extends \ActiveRecord
         $this->Status = 'available';
         $this->save();
 
+        // On after deployment event
+        Emergence\EventBus::fireEvent('afterDeploymentCompleted', $this->getRootClass(), [
+            'Record' => $this,
+            'StagingSite' => $StagingSite,
+            'ProductionSide' => $ProductionSite
+        ]);
+
         // Update new site file systems
         $this->requestFileSystemUpdates();
-
-        // On after deployment
-        if (is_callable(static::$onAfterDeployment)) {
-            call_user_func(static::$onAfterDeployment, $this, $StagingSite, $ProdSite);
-        }
     }
 
     /*
