@@ -197,7 +197,7 @@ class Deployment extends \ActiveRecord
         \Emergence\EventBus::fireEvent('afterDeploymentCompleted', $this->getRootClass(), [
             'Record' => $this,
             'StagingSite' => $StagingSite,
-            'ProductionSide' => $ProductionSite
+            'ProductionSite' => $ProdSite
         ]);
 
         // Update new site file systems
