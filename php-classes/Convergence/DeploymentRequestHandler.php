@@ -78,13 +78,7 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
             if ($level == 0) {
 
                 foreach ($Deployment->Sites as $Site) {
-                    $Site->Updating = 1;
-                    $Site->save();
-
-                    array_push($jobsData, [
-                        'handle' => $Site->Handle,
-                        'action' => 'vfs-update'
-                    ]);
+                    $Deployment->requestFileSystemUpdates();
                 }
 
             // Only set production or staging sites to updated

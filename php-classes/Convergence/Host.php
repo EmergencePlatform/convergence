@@ -232,6 +232,18 @@ class Host extends \ActiveRecord
                                 if ($activeJobs[$handle][$job['uid']]['status'] == 'completed') {
                                     $Site->ParentCursor = $activeJobs[$handle][$job['uid']]['command']['result']['parentCursor'];
                                     $Site->LocalCursor = $activeJobs[$handle][$job['uid']]['command']['result']['localCursor'];
+
+                                    // Update child site
+                                    if ($activeJobs[$handle][$job['uid']]['command']['updateChild'] === true) {
+
+                                        $ChildSite = Site::getByWhere([
+                                            'ParentSiteID' => $this->ID
+                                        ]);
+
+                                        if ($ChildSite) {
+                                            $ChildSite->requestFileSystemUpdate();
+                                        }
+                                    }
                                 }
 
                                 $Site->Updating = false;

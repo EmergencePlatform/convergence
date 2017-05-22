@@ -20,7 +20,6 @@ class Deployment extends \ActiveRecord
 
     public static $onBeforeStagingDeployment;
     public static $onBeforeProductionDeployment;
-    public static $onAfterDeployment;
 
     public static $fields = [
         'Label' => [
@@ -189,7 +188,7 @@ class Deployment extends \ActiveRecord
         $this->save();
 
         // On after deployment event
-        Emergence\EventBus::fireEvent('afterDeploymentCompleted', $this->getRootClass(), [
+        \Emergence\EventBus::fireEvent('afterDeploymentCompleted', $this->getRootClass(), [
             'Record' => $this,
             'StagingSite' => $StagingSite,
             'ProductionSide' => $ProductionSite
@@ -213,12 +212,13 @@ class Deployment extends \ActiveRecord
             'ParentSiteID' => $this->ParentSiteID
         ]);
 
-        while ($Site) {
-            array_push($jobsData, [
-                'handle' => $Site->Handle,
-                'action' => 'vfs-update'
-            ]);
+        array_push($jobsData, [
+            'handle' => $Site->Handle,
+            'action' => 'vfs-update',
+            'updateChild' => true
+        ]);
 
+        while ($Site) {
             $Site->Updating = true;
             $Site->save();
 
