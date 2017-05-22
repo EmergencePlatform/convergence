@@ -50,8 +50,8 @@
             <a href="" class="btn btn-info">Refresh</a>
         </div>
         {foreach item=Site from=$data->Sites}
-            <h2>Site: {$Site->Handle} - Jobs</h2>
-            {if $jobs[$Site->ID]}
+            <h2>Site Jobs: {$Site->Handle}</h2>
+            {if $jobs[$Site->ID]['jobs']}
                 <table class="table table-condensed">
                     <thead>
                         <tr>
