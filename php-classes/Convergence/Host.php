@@ -229,9 +229,9 @@ class Host extends \ActiveRecord
 
                             if ($Site = Site::getByField('Handle', $job['handle'])) {
 
-                                if ($activeJobs[$handle][$job['uid']]['command']['status'] == 'completed') {
-                                    $Site->ParentCursor = $command['result']['parentCursor'];
-                                    $Site->LocalCursor = $command['result']['localCursor'];
+                                if ($activeJobs[$handle][$job['uid']]['status'] == 'completed') {
+                                    $Site->ParentCursor = $activeJobs[$handle][$job['uid']]['command']['result']['parentCursor'];
+                                    $Site->LocalCursor = $activeJobs[$handle][$job['uid']]['command']['result']['localCursor'];
                                 }
 
                                 $Site->Updating = false;

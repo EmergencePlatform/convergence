@@ -216,9 +216,9 @@ class Site extends \ActiveRecord
                         // Update site if vfs-update has completed or failed
                         if (in_array($activeJob['status'], ['completed', 'failed'])) {
 
-                            if ($activeJob['command']['status'] == 'completed') {
-                                $this->ParentCursor = $command['result']['parentCursor'];
-                                $this->LocalCursor = $command['result']['localCursor'];
+                            if ($activeJob['status'] == 'completed') {
+                                $this->ParentCursor = $activeJob['command']['result']['parentCursor'];
+                                $this->LocalCursor = $activeJob['command']['result']['localCursor'];
                             }
 
                             $this->Updating = false;
