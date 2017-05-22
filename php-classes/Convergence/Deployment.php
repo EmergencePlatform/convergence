@@ -13,6 +13,11 @@ class Deployment extends \ActiveRecord
     public static $defaultParentHostname = 'skeleton-v2.emr.ge';
     public static $defaultParentInheritanceKey = 'lKhjNhwXoM8rLbXw';
     public static $blacklistedHostnames = [];
+
+    public static $useSSL = false;
+    public static $defaultSSLCert;
+    public static $defaultSSLKey;
+
     public static $onBeforeStagingDeployment;
     public static $onBeforeProductionDeployment;
     public static $onAfterDeployment;
@@ -150,6 +155,15 @@ class Deployment extends \ActiveRecord
             'parent_key' => $StagingSite->InheritanceKey,
             'primary_hostname' => $primaryHostname
         ];
+
+        // Apply default ssl cert / key, only use if
+        // wildcard ssl is available for $defaultHostname
+        if (static::$useSSL == true) {
+            $prodConfig['ssl'] = [
+                'certificate' => static::$defaultSSLCert,
+                'certificate_key' => static::$defaultSSLKey
+            ];
+        }
 
         // On before production deploy
         if (is_callable(static::$onBeforeProductionDeployment)) {
