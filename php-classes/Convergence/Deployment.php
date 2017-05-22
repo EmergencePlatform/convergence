@@ -31,7 +31,10 @@ class Deployment extends \ActiveRecord
             'default' => 'draft'
         ],
         'PrimaryHostname',
-        'ParentSiteID' => 'uint',
+        'ParentSiteID' => [
+            'type' => 'uint',
+            'default' => 0
+        ],
         'HostID' => 'uint'
     ];
 
@@ -55,7 +58,10 @@ class Deployment extends \ActiveRecord
     ];
 
 	public static $validators = [
-        'PrimaryHostname' => 'FQDN'
+        'PrimaryHostname' => [
+            'validator' => 'FQDN',
+            'required' => false
+        ]
 	];
 
     /*
@@ -205,18 +211,17 @@ class Deployment extends \ActiveRecord
      */
     public function requestFileSystemUpdates()
     {
-        $results = [];
-        $jobsData = [];
         $Site = Site::getByWhere([
             'DeploymentID' => $this->ID,
             'ParentSiteID' => $this->ParentSiteID
         ]);
 
-        array_push($jobsData, [
+        $jobsData = [[
             'handle' => $Site->Handle,
             'action' => 'vfs-update',
+            'cursor' => $Site->ParentCursor,
             'updateChild' => true
-        ]);
+        ]];
 
         while ($Site) {
             $Site->Updating = true;

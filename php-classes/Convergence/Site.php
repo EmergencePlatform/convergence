@@ -26,7 +26,10 @@ class Site extends \ActiveRecord
         'DeploymentID' => 'uint',
     	'HostID' => 'uint',
 		'PrimaryHostnameID' => 'uint',
-        'ParentSiteID' => 'uint'
+        'ParentSiteID' => [
+            'type' => 'uint',
+            'default' => 0
+        ]
 	];
 
 	public static $indexes = [
@@ -169,7 +172,8 @@ class Site extends \ActiveRecord
     {
         // Create job request
         $result = $this->executeRequest('jobs', 'POST', [[
-            'action' => 'vfs-update'
+            'action' => 'vfs-update',
+            'cursor' => $this->ParentCursor,
         ]]);
 
         // Add new job to queue
