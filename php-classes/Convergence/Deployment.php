@@ -10,8 +10,9 @@ class Deployment extends \ActiveRecord
     public static $collectionRoute = 'deployments';
 
     public static $defaultHostname;
-    public static $defaultParentHostname = 'skeleton-temp.sandbox02.jarv.us'; // 'skeleton-v2.emr.ge';
-    public static $defaultParentInheritanceKey = '3CsAitz4GyB0MVs7'; // 'lKhjNhwXoM8rLbXw';
+    public static $defaultParentHostname = 'skeleton-v2.emr.ge';
+    public static $defaultParentInheritanceKey = 'lKhjNhwXoM8rLbXw';
+    public static $blacklistedHostnames = [];
     public static $onBeforeStagingDeployment;
     public static $onBeforeProductionDeployment;
     public static $onAfterDeployment;
@@ -25,6 +26,7 @@ class Deployment extends \ActiveRecord
             'values'=> ['draft', 'pending', 'provisioning', 'available', 'suspended', 'interrupted'],
             'default' => 'draft'
         ],
+        'PrimaryHostname',
         'ParentSiteID' => 'uint',
         'HostID' => 'uint'
     ];
@@ -47,6 +49,10 @@ class Deployment extends \ActiveRecord
             'class' => Host::class
         ]
     ];
+
+	public static $validators = [
+        'PrimaryHostname' => 'FQDN'
+	];
 
     /*
      * Create staging and production site for deployment
@@ -87,15 +93,21 @@ class Deployment extends \ActiveRecord
             'label' => $this->Label . ' (Staging)'
         ];
 
-        // Generate unique hostname
-        $labelSanitized = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $this->Label)));
-        $primaryHostname = $labelSanitized . '.' . $baseHostname;
-        $ExistingHostname = Hostname::getByField('Hostname', $primaryHostname);
-        $cnt = 1;
-        while ($ExistingHostname) {
-            $primaryHostname = $labelSanitized . $cnt . '.' . $baseHostname;
+        // Use predefined hostname
+        if ($this->PrimaryHostname) {
+            $primaryHostname = $this->PrimaryHostname;
+
+        // Create unique hostname from label
+        } else {
+            $labelSanitized = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $this->Label)));
+            $primaryHostname = $labelSanitized . '.' . $baseHostname;
             $ExistingHostname = Hostname::getByField('Hostname', $primaryHostname);
-            $cnt++;
+            $cnt = 1;
+            while ($ExistingHostname) {
+                $primaryHostname = $labelSanitized . $cnt . '.' . $baseHostname;
+                $ExistingHostname = Hostname::getByField('Hostname', $primaryHostname);
+                $cnt++;
+            }
         }
 
         $stagingConfig['primary_hostname'] = 'staging.' . $primaryHostname;
@@ -266,5 +278,29 @@ class Deployment extends \ActiveRecord
         }
 
         return false;
+    }
+
+    /*
+     * Additional validation checks
+     *
+     * @params bool $deep
+     * @return void
+     */
+    public function validate($deep = true)
+    {
+        parent::validate($deep);
+
+        // Verify primary hostname is available
+        if ($this->PrimaryHostname && ($this->Status == 'pending' || $this->Status == 'draft')) {
+            if (Hostname::getByField('Hostname', $this->PrimaryHostname)) {
+                $this->_validator->addError('PrimaryHostname', 'Primary hostname is not available.');
+            }
+
+            if (in_array($this->PrimaryHostname, static::$blacklistedHostnames)) {
+                $this->_validator->addError('PrimaryHostname', 'Primary hostname is not available.');
+            }
+        }
+
+        return $this->finishValidation();
     }
 }

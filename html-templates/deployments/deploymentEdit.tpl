@@ -54,7 +54,6 @@
                         <option value="interrupted" {if $data->Status == 'pending'}interrupted{/if} disabled>Interrupted</option>
                     </select>
                 </div>
-
                 {$sites = Convergence\Site::getAll()}
                 <div class="form-group">
                     <label for="Status">Parent Site</label>
@@ -65,6 +64,12 @@
                         {/foreach}
                     </select>
                 </div>
+                {if $data->isPhantom || $data->Status == 'draft'}
+                    <div class="form-group">
+                        <label for="PrimaryHostname">Primary Hostname (optional)</label>
+                        <input type="text" class="form-control" name="PrimaryHostname" value="{$data->PrimaryHostname}">
+                    </div>
+                {/if}
                 <button type="submit" class="btn btn-primary">{if $data->isPhantom}Create{else}Update{/if}</button>
             </fieldset>
         </form>
