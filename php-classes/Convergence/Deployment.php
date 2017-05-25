@@ -9,7 +9,7 @@ class Deployment extends \ActiveRecord
     public static $pluralNoun = 'deployments';
     public static $collectionRoute = 'deployments';
 
-    public static $defaultHostname;
+    public static $defaultBaseHostname;
     public static $defaultParentHostname = 'skeleton-v2.emr.ge';
     public static $defaultParentInheritanceKey = 'lKhjNhwXoM8rLbXw';
     public static $blacklistedHostnames = [];
@@ -79,8 +79,8 @@ class Deployment extends \ActiveRecord
         $this->save();
 
         // Determine base hostname
-        if (static::$defaultHostname) {
-            $baseHostname = static::$defaultHostname;
+        if (static::$defaultBaseHostname) {
+            $baseHostname = static::$defaultBaseHostname;
         } else {
             $baseHostname = $_SERVER['HTTP_HOST'];
         }
