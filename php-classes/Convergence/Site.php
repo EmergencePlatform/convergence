@@ -238,7 +238,7 @@ class Site extends \ActiveRecord
                             if ($initialUpdate) {
                                 \Emergence\EventBus::fireEvent('afterInitialVFSSync', $this->getRootClass(), array(
                                     'Record' => $this,
-                                    'Status' => $activeJobs[$handle][$job['uid']]['status']
+                                    'Job' => $activeJobs[$handle][$job['uid']]
                                 ));
                             }
 
