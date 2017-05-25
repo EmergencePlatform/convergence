@@ -39,20 +39,22 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
     public static function handleUpdateFileSystemRequest($Record)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!empty($_POST['updatevfs'])) {
-                $Record->requestFileSystemUpdates();
-            } else {
-                $Record->requestFileSystemSummary();
+            switch ($_POST['action']) {
+                case 'vfs-update':
+                    $Record->requestFileSystemUpdates();
+                    break;
+                case 'vfs-summary':
+                    $Record->requestFileSystemSummary();
+                    break;
+                case 'jobs-sync':
+                    Job::syncActiveJobs();
+                    break;
             }
         }
 
-        $Record->Host->syncJobsQueue();
-        $jobs = $Record->getDeploymentJobs();
-
         static::respond('deployments/deploymentUpdate', [
             'success' => true,
-            'data' => $Record,
-            'jobs' => $jobs,
+            'data' => $Record
         ]);
     }
 
@@ -132,12 +134,6 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
      */
     public static function handleUpdateStatusRequest()
     {
-        // Process update queue
-        // @todo refactor for multiple hosts
-        if ($Host = Host::getAvailable()) {
-            $Host->syncJobsQueue();
-        }
-
         $progress = Site::getUpdateProgress();
 
         \JSON::respond([

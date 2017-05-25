@@ -216,6 +216,7 @@ class Deployment extends \ActiveRecord
             'ParentSiteID' => $this->ParentSiteID
         ]);
 
+        // Create update job on top level deployment site
         $jobsData = [[
             'handle' => $Site->Handle,
             'action' => 'vfs-update',
@@ -223,17 +224,13 @@ class Deployment extends \ActiveRecord
             'updateChild' => true
         ]];
 
-        while ($Site) {
+        // Set all deployment sites to updating
+        foreach ($this->Sites as $Site) {
             $Site->Updating = true;
             $Site->save();
-
-            $Site = Site::getByWhere([
-                'DeploymentID' => $this->ID,
-                'ParentSiteID' => $Site->ID
-            ]);
         }
 
-        $this->Host->submitBulkJobsRequest($jobsData);
+        $this->Host->executeBulkJobsRequest($jobsData);
     }
 
     /*
@@ -252,23 +249,7 @@ class Deployment extends \ActiveRecord
             ]);
         }
 
-        $this->Host->submitBulkJobsRequest($jobsData);
-    }
-
-    /*
-     * Gets all active jobs for the deployment's sites
-     *
-     * @return array
-     */
-    public function getDeploymentJobs()
-    {
-        $results = [];
-
-        foreach ($this->Sites as $Site) {
-            $results[$Site->ID] = $Site->getJobsSummary();
-        }
-
-        return $results;
+        $this->Host->executeBulkJobsRequest($jobsData);
     }
 
     /*
