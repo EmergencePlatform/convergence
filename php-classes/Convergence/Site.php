@@ -166,18 +166,7 @@ class Site extends \ActiveRecord
         ]]);
 
         // Create coorelated job
-        if ($result['success'] == true) {
-            foreach ($result['jobs'] as $job) {
-                Job::create([
-                    'UID' => $job['uid'],
-                    'Received' => $job['received'] / 1000,
-                    'Action' => $job['command']['action'],
-                    'Command' => $job['command'],
-                    'Site' => $this,
-                    'Host' => $this->Host
-                ], true);
-            }
-        }
+        Job::createFromJobsRequest($this->Host, $result);
 
         return $result;
     }
@@ -196,18 +185,7 @@ class Site extends \ActiveRecord
         ]]);
 
         // Create coorelated job
-        if ($result['success'] == true) {
-            foreach ($result['jobs'] as $job) {
-                Job::create([
-                    'UID' => $job['uid'],
-                    'Received' => $job['received'] / 1000,
-                    'Action' => $job['command']['action'],
-                    'Command' => $job['command'],
-                    'Site' => $this,
-                    'Host' => $this->Host
-                ], true);
-            }
-        }
+        Job::createFromJobsRequest($this->Host, $result);
 
         return $result;
     }

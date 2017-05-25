@@ -42,6 +42,37 @@ class Job extends \ActiveRecord
     ];
 
     /*
+     * Creates jobs that coorelate with the results from
+     * a job request to the kernel
+     *
+     * @params object $Host
+     * @params array $results
+     * @return void
+     */
+    public static function createFromJobsRequest($Host, $results)
+    {
+        if ($results['success'] == true) {
+
+            foreach ($results['jobs'] as $job) {
+                $Site = Site::getByField('Handle', $job['handle']);
+
+                if (!$Site) {
+                    continue;
+                }
+
+                static::create([
+                    'UID' => $job['uid'],
+                    'Received' => $job['received'] / 1000,
+                    'Action' => $job['command']['action'],
+                    'Command' => $job['command'],
+                    'Site' => $Site,
+                    'Host' => $Host
+                ], true);
+            }
+        }
+    }
+
+    /*
      * Attempts to update any pending jobs with server
      *
      * @return void
