@@ -113,16 +113,19 @@ class Job extends \ActiveRecord
                     // Update site on vfs update
                     if ($PendingJob->Action == 'vfs-update') {
 
-                        // Update pending job
-                        $initialUpdate = boolval($PendingJob->Site->ParentCursor);
-                        $PendingJob->Site->ParentCursor = $activeJob['command']['result']['parentCursor'];
-                        $PendingJob->Site->LocalCursor = $activeJob['command']['result']['localCursor'];
-                        $PendingJob->Site->Updating = false;
-                        $PendingJob->Site->save();
+                        // Get updated site record
+                        $Site = Site::getByID($PendingJob->SiteID);
+
+                        // Update pending job's site
+                        $initialUpdate = !boolval($Site->ParentCursor);
+                        $Site->ParentCursor = $activeJob['command']['result']['parentCursor'];
+                        $Site->LocalCursor = $activeJob['command']['result']['localCursor'];
+                        $Site->Updating = false;
+                        $Site->save();
 
                         // Conditionally update child site
                         if ($activeJob['command']['updateChild'] === true) {
-                            $childSites = Site::getAllByField('ParentSiteID', $PendingJob->Site->ID);
+                            $childSites = Site::getAllByField('ParentSiteID', $Site->ID);
                             foreach ($childSites as $ChildSite) {
                                 $ChildSite->requestFileSystemUpdate();
                             }
@@ -132,9 +135,9 @@ class Job extends \ActiveRecord
                         if ($initialUpdate) {
                             \Emergence\EventBus::fireEvent(
                                 'afterInitialVFSUpdate',
-                                $PendingJob->Site->getRootClass(),
+                                $Site->getRootClass(),
                                 [
-                                    'Record' => $PendingJob->Site,
+                                    'Record' => $Site,
                                     'Job' => $PendingJob
                                 ]
                             );
