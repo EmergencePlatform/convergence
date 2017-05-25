@@ -92,6 +92,22 @@ class Host extends \ActiveRecord
     }
 
     /*
+     * Execute bulk jobs request
+     *
+     * @return array
+     */
+    public function executeBulkJobsRequest($jobsData)
+    {
+        // Submit bulk jobs request
+        $results = $this->executeRequest('/jobs', 'POST', $jobsData);
+
+        // Create jobs from result
+        Job::createFromJobsRequest($this, $results);
+
+        return $result;
+    }
+
+    /*
      * Push request to Emergence kernel
      *
      * @params string $path
@@ -147,151 +163,5 @@ class Host extends \ActiveRecord
         }
 
         return $output;
-    }
-
-    /*
-     * Submit bulk jobs request and add jobs to queue
-     *
-     * @return array
-     */
-    public function submitBulkJobsRequest($jobsData)
-    {
-        // Submit bulk jobs request
-        $result = $this->executeRequest('/jobs', 'POST', $jobsData);
-
-        // Get current jobs queue
-        $jobsQueue = $this->getJobsQueue();
-
-        if ($result['jobs']) {
-
-            foreach ($result['jobs'] as $job) {
-
-                if (!is_array($jobsQueue[$job['handle']])) {
-                    $jobsQueue[$job['handle']] = [$job];
-                } else {
-                    array_push($jobsQueue[$job['handle']], $job);
-                }
-            }
-        }
-
-        // Update jobs queue for host
-        $this->updateJobsQueue($jobsQueue);
-
-        return $result;
-    }
-
-    /*
-     * Returns current job queue
-     *
-     * @return array
-     */
-    public function getJobsQueue()
-    {
-        if (false === ($jobsQueue = \Cache::fetch('JobsQueue-' . $this->ID))) {
-            $jobsQueue = [];
-        }
-
-        return $jobsQueue;
-    }
-
-    /*
-     * Stores the provided job queue in cache
-     *
-     * @params array $queue
-     * @return void
-     */
-    public function updateJobsQueue($queue)
-    {
-        \Cache::store('JobsQueue-' . $this->ID, $queue, 60*60);
-    }
-
-    /*
-     * Update sites after jobs have completed
-     *
-     * @return void
-     */
-    public function syncJobsQueue()
-    {
-        $jobsQueue = $this->getJobsQueue();
-
-        // Only continue if job queue has values
-        if (!$jobsQueue) {
-            return;
-        }
-
-        $activeJobs = $this->executeRequest('/jobs', 'GET')['jobs'];
-
-        foreach ($jobsQueue as $handle => $jobs) {
-
-            foreach ($jobs as $index => $job) {
-
-                // Find job queue in active jobs
-                if ($activeJobs[$handle][$job['uid']]) {
-
-                    if ($activeJobs[$handle][$job['uid']]['command']['action'] == 'vfs-update') {
-
-                        // Update site if vfs-update has completed or failed
-                        if (in_array($activeJobs[$handle][$job['uid']]['status'], ['completed', 'failed'])) {
-
-                            if ($Site = Site::getByField('Handle', $job['handle'])) {
-
-                                // Flag initial update
-                                if ($Site->ParentCursor == 0) {
-                                    $initialUpdate = true;
-                                } else {
-                                    $initialUpdate = false;
-                                }
-
-                                if ($activeJobs[$handle][$job['uid']]['status'] == 'completed') {
-
-                                    $Site->ParentCursor = $activeJobs[$handle][$job['uid']]['command']['result']['parentCursor'];
-                                    $Site->LocalCursor = $activeJobs[$handle][$job['uid']]['command']['result']['localCursor'];
-
-                                    // Update child site
-                                    if ($activeJobs[$handle][$job['uid']]['command']['updateChild'] === true) {
-
-                                        $ChildSite = Site::getByWhere([
-                                            'ParentSiteID' => $Site->ID
-                                        ]);
-
-                                        if ($ChildSite) {
-                                            $ChildSite->requestFileSystemUpdate();
-
-                                            // Get updated jobs queue
-                                            $jobsQueue = $this->getJobsQueue();
-                                        }
-                                    }
-                                }
-
-                                $Site->Updating = false;
-                                $Site->save();
-
-                                if ($initialUpdate) {
-                                    \Emergence\EventBus::fireEvent('afterInitialVFSSync', $Site->getRootClass(), array(
-                                        'Record' => $Site,
-                                        'Status' => $activeJobs[$handle][$job['uid']]['status']
-                                    ));
-                                }
-                            }
-
-                            // Remove job from queue
-                            unset($jobsQueue[$handle][$index]);
-                            if (count($jobsQueue[$handle]) == 0) {
-                                unset($jobsQueue[$handle]);
-                            }
-                        }
-                    }
-
-                // Remove orphaned job queue jobs
-                } else {
-                    unset($jobsQueue[$handle][$index]);
-                    if (count($jobsQueue[$handle]) == 0) {
-                        unset($jobsQueue[$handle]);
-                    }
-                }
-            }
-        }
-
-        $this->updateJobsQueue($jobsQueue);
     }
 }
