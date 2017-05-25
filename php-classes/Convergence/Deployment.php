@@ -258,7 +258,7 @@ class Deployment extends \ActiveRecord
      *
      * @return bool
      */
-    public function updateingSite()
+    public function isUpdating()
     {
         if ($this->Sites) {
             foreach ($this->Sites as $Site) {

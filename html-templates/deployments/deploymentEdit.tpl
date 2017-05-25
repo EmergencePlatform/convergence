@@ -31,7 +31,7 @@
     <div class="alert alert-success">{_ "Updated"}</div>
 {/if}
 
-{if $data->updateingSite()}
+{if $data->isUpdating()}
     <div class="alert alert-danger">{_ "Sites are updating..."} <a href="/{$data->getUrl('update')}">Click to finalize update.</a></div>
 {/if}
 

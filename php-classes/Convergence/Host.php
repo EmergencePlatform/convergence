@@ -75,7 +75,7 @@ class Host extends \ActiveRecord
      * Generate site for host
      *
      * @params array $configs
-     * @return obj
+     * @return array
      */
     public function createSite($configs)
     {
@@ -114,7 +114,7 @@ class Host extends \ActiveRecord
      * @params string $requestMethod
      * @params array $params
      * @params array $headers
-     * @return obj
+     * @return array
      */
     public function executeRequest($path, $requestMethod = 'GET', $params = [], $headers = [])
     {

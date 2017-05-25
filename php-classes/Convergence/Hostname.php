@@ -8,28 +8,28 @@ class Hostname extends \ActiveRecord
     public static $singularNoun = 'hostname';
     public static $pluralNoun = 'hostnames';
 
-	public static $fields = [
-		'Hostname' => [
-			'unique' => true
-		],
-		'SiteID' => 'uint'
-	];
+    public static $fields = [
+        'Hostname' => [
+        'unique' => true
+    ],
+        'SiteID' => 'uint'
+    ];
 
-	public static $validators = [
+    public static $validators = [
         'Hostname' => 'FQDN'
-	];
+    ];
 
-	public static $relationships = [
-		'Site' => [
-			'type' => 'one-one',
-			'class' => Site::class
-		]
-	];
+    public static $relationships = [
+        'Site' => [
+            'type' => 'one-one',
+            'class' => Site::class
+        ]
+    ];
 
-	public function __toString()
-	{
-		return $this->Hostname;
-	}
+    public function __toString()
+    {
+        return $this->Hostname;
+    }
 
     public function getHandle()
     {

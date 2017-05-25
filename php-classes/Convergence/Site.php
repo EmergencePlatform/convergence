@@ -11,61 +11,61 @@ class Site extends \ActiveRecord
 
 	public static $fields = [
         'Label',
-		'Handle' => [
-			'unique' => true
-		],
-    	'InheritanceKey' => [
-			'notnull' => false
-		],
+        'Handle' => [
+            'unique' => true
+        ],
+        'InheritanceKey' => [
+            'notnull' => false
+        ],
         'LocalCursor' => 'uint',
         'ParentCursor' => 'uint',
         'Updating' => [
-            'type' => 'boolean',
+        'type' => 'boolean',
             'default' => false
         ],
         'DeploymentID' => 'uint',
-    	'HostID' => 'uint',
-		'PrimaryHostnameID' => 'uint',
+        'HostID' => 'uint',
+        'PrimaryHostnameID' => 'uint',
         'ParentSiteID' => [
-            'type' => 'uint',
+        'type' => 'uint',
             'default' => 0
         ]
-	];
+    ];
 
-	public static $indexes = [
-		'HostHandle' => [
-			'fields' => ['HostID', 'Handle'],
-			'unique' => true
-		]
-	];
+    public static $indexes = [
+        'HostHandle' => [
+            'fields' => ['HostID', 'Handle'],
+            'unique' => true
+        ]
+    ];
 
-	public static $validators = [
+    public static $validators = [
         'Handle' => [
             'validator' => 'handle',
             'required' => true
         ],
-		'Deployment' => 'require-relationship',
-    	'Host' => 'require-relationship',
-        'PrimaryHostname' => 'require-relationship',
-	];
+        'Deployment' => 'require-relationship',
+        'Host' => 'require-relationship',
+        'PrimaryHostname' => 'require-relationship'
+    ];
 
-	public static $relationships = [
+    public static $relationships = [
         'Deployment' => [
             'type' => 'one-one',
             'class' => Deployment::class
         ],
-		'Host' => [
-			'type' => 'one-one',
-			'class' => Host::class
-		],
-		'PrimaryHostname' => [
-			'type' => 'one-one',
-			'class' => Hostname::class
-		],
+        'Host' => [
+            'type' => 'one-one',
+            'class' => Host::class
+        ],
+        'PrimaryHostname' => [
+            'type' => 'one-one',
+            'class' => Hostname::class
+        ],
         'SecondaryHostnames' => [
             'type' => 'one-many',
             'class' => Hostname::class,
-           // @todo 'conditions' =>
+            // @todo 'conditions' =>
         ],
         'ParentSite' => [
             'type' => 'one-one',
@@ -76,7 +76,7 @@ class Site extends \ActiveRecord
             'class' => Job::class,
             'order' => 'ID DESC'
         ]
-	];
+    ];
 
     public static $searchConditions = [
         'Handle' => array(
@@ -188,76 +188,6 @@ class Site extends \ActiveRecord
         Job::createFromJobsRequest($this->Host, $result);
 
         return $result;
-    }
-
-    /*
-     * Update sites based on pending job status
-     *
-     * @return void
-     */
-    public function syncFileSystemUpdates()
-    {
-        $activeJobs = $this->getJobsSummary()['jobs'];
-        $jobsQueue = $this->Host->getJobsQueue();
-
-        if (empty($jobsQueue[$this->Handle])) {
-            return true;
-        }
-
-        // Check each job assigned to site
-        foreach ($jobsQueue[$this->Handle] as $index => $job) {
-            $jobFound = false;
-
-            // Find the coorelated active job
-            foreach ($activeJobs as $activeJob) {
-
-                if ($activeJob['uid'] == $job['uid']) {
-                    $jobFound = true;
-
-                    if ($activeJob['command']['action'] == 'vfs-update') {
-
-                        // Update site if vfs-update has completed or failed
-                        if (in_array($activeJob['status'], ['completed', 'failed'])) {
-
-                            // Flag initial update
-                            if ($Site->ParentCursor == 0) {
-                                $initialUpdate = true;
-                            } else {
-                                $initialUpdate = false;
-                            }
-
-                            if ($activeJob['status'] == 'completed') {
-                                $this->ParentCursor = $activeJob['command']['result']['parentCursor'];
-                                $this->LocalCursor = $activeJob['command']['result']['localCursor'];
-                            }
-
-                            $this->Updating = false;
-                            $this->save();
-
-                            if ($initialUpdate) {
-                                \Emergence\EventBus::fireEvent('afterInitialVFSSync', $this->getRootClass(), array(
-                                    'Record' => $this,
-                                    'Job' => $activeJobs[$handle][$job['uid']]
-                                ));
-                            }
-
-                            // Remove job from queue
-                            unset($jobsQueue[$this->Handle][$index]);
-                        }
-                    }
-                }
-            }
-
-            // If job status isn't available, mark site as updated = false
-            if (!$jobFound) {
-                $this->Updating = false;
-                $this->save();
-                unset($jobsQueue[$this->Handle][$index]);
-            }
-        }
-
-        // Update jobs queue
-        $this->Host->updateJobsQueue($jobsQueue);
     }
 
     /*
