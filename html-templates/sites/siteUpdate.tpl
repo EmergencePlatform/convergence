@@ -40,14 +40,20 @@
         <div class="btn-inline">
             <form method="POST">
                 <input type="submit" value="Update File System" class="btn btn-primary">
-                <input type="hidden" name="updatevfs" value="1" />
+                <input type="hidden" name="action" value="vfs-update" />
             </form>
             <form method="POST">
                 <input type="submit" value="Get Summary" class="btn btn-success">
+                <input type="hidden" name="action" value="vfs-summary" />
+            </form>
+            <form method="POST">
+                <input type="submit" value="Sync Pending Jobs" class="btn btn-info">
+                <input type="hidden" name="action" value="jobs-sync" />
             </form>
         </div>
-        <h2>Jobs <a href="" class="btn btn-primary">Refresh</a></h2>
-        {if $jobs['jobs']}
+        <h2>Jobs</h2>
+        {$jobs = Convergence\Job::getAllByWhere(array('SiteID' => $data->ID), array('limit' => 20, 'order' => 'ID DESC'))}
+        {if $jobs}
             <table class="table table-condensed">
                 <thead>
                     <tr>
@@ -61,32 +67,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {foreach item=job from=$jobs['jobs']}
-                        <tr data-toggle="collapse" data-target="#job{$dwoo.foreach.default.index}" class="accordion-toggle">
-                            <td>{$job['uid']}</td>
-                            <td>{$job['status']}</td>
-                            <td>{date('g:i:s a', $job['received']/1000)}</td>
-                            <td>{if $job['started']}{date('g:i:s a', $job['started']/1000)}{/if}</td>
-                            <td>{if $job['completed']}{date('g:i:s a', $job['completed']/1000)}{/if}</td>
-                            <td>{$job['command']['action']}</td>
+                    {foreach item=Job from=$jobs}
+                        <tr data-toggle="collapse" data-target="#job{$Job->ID}" class="accordion-toggle">
+                            <td>{$Job->UID}</td>
+                            <td>{$Job->Status}</td>
+                            <td>{date('g:i:s a', $Job->Received)}</td>
+                            <td>{if $Job->Started}{date('g:i:s a', $Job->Started)}{/if}</td>
+                            <td>{if $Job->Completed}{date('g:i:s a', $Job->Completed)}{/if}</td>
+                            <td>{$Job->Action}</td>
                             <td><a href="#">Click for Results</td>
                         </tr>
                         <tr>
                             <td colspan="7" class="hiddenRow">
-                                <div class="accordian-body collapse" id="job{$dwoo.foreach.default.index}">
-                                    <h4>Action: {$job['command']['action']}</h4>
-                                    {if $job['command']['action'] == 'vfs-summary'}
-                                        <h5>Local Cursor: {$job['command']['result']['localCursor']}</h5>
-                                        <h5>Parent Cursor: {$job['command']['result']['parentCursor']}</h5>
-                                        <h5>New Files</h5>
-                                        {dump $job['command']['result']['new']}
-                                        <h5>Updated Files</h5>
-                                        {dump $job['command']['result']['updated']}
-                                        <h5>Deleted Files</h5>
-                                        {dump $job['command']['result']['deleted']}
-                                    {else}
-                                        {dump $job['command']}
-                                    {/if}
+                                <div class="accordian-body collapse" id="job{$Job->ID}">
+                                    <h4>Command</h4>
+                                    {dump $Job->Command}
+                                    <h4>Result</h4>
+                                    {dump $Job->Result}
                                 </div>
                             </td>
                         </tr>

@@ -74,7 +74,7 @@ class SitesRequestHandler extends \RecordsRequestHandler
             $siteResponse = $Record->Host->createSite($configs);
             $Record->InheritanceKey = $siteResponse['data']['inheritance_key'];
             $Record->save();
-        
+
         // Patch primary hostname update to the kernel
         } else {
             // Pull into an event handler
@@ -89,23 +89,24 @@ class SitesRequestHandler extends \RecordsRequestHandler
     public static function handleUpdateSiteFileSystemRequest($Record)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!empty($_POST['updatevfs'])) {
-                $Record->requestFileSystemUpdate();
-                $Record->Updating = true;
-                $Record->save();
-            } else {
-                $Record->requestFileSystemSummary();
+            switch ($_POST['action']) {
+                case 'vfs-update':
+                    $Record->requestFileSystemUpdate();
+                    $Record->Updating = true;
+                    $Record->save();
+                    break;
+                case 'vfs-summary':
+                    $Record->requestFileSystemSummary();
+                    break;
+                case 'jobs-sync':
+                    Job::syncActiveJobs();
+                    break;
             }
         }
 
-        $Record->syncFileSystemUpdates();
-        $jobs = $Record->getJobsSummary();
-
         static::respond('sites/siteUpdate', [
             'success' => true,
-            'data' => $Record,
-            'summary' => $summary,
-            'jobs' => $jobs
+            'data' => $Record
         ]);
     }
 }

@@ -70,6 +70,11 @@ class Site extends \ActiveRecord
         'ParentSite' => [
             'type' => 'one-one',
             'class' => Site::class
+        ],
+        'Jobs' => [
+            'type' => 'one-many',
+            'class' => Job::class,
+            'order' => 'ID DESC'
         ]
 	];
 
@@ -160,6 +165,20 @@ class Site extends \ActiveRecord
             'action' => 'vfs-summary'
         ]]);
 
+        // Create coorelated job
+        if ($result['success'] == true) {
+            foreach ($result['jobs'] as $job) {
+                Job::create([
+                    'UID' => $job['uid'],
+                    'Received' => $job['received'] / 1000,
+                    'Action' => $job['command']['action'],
+                    'Command' => $job['command'],
+                    'Site' => $this,
+                    'Host' => $this->Host
+                ], true);
+            }
+        }
+
         return $result;
     }
 
@@ -176,17 +195,19 @@ class Site extends \ActiveRecord
             'cursor' => $this->ParentCursor,
         ]]);
 
-        // Add new job to queue
-        $jobsQueue = $this->Host->getJobsQueue();
-
-        if (!is_array($jobsQueue[$this->Handle])) {
-            $jobsQueue[$this->Handle] = [$result['jobs'][0]];
-        } else {
-            array_push($jobsQueue[$this->Handle], $result['jobs'][0]);
+        // Create coorelated job
+        if ($result['success'] == true) {
+            foreach ($result['jobs'] as $job) {
+                Job::create([
+                    'UID' => $job['uid'],
+                    'Received' => $job['received'] / 1000,
+                    'Action' => $job['command']['action'],
+                    'Command' => $job['command'],
+                    'Site' => $this,
+                    'Host' => $this->Host
+                ], true);
+            }
         }
-
-        // Update jobs queue for host
-        $this->Host->updateJobsQueue($jobsQueue);
 
         return $result;
     }
