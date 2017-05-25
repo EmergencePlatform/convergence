@@ -30,7 +30,7 @@
 </div>
 
 <div class="row">
-    <div class="col-sm-4 vm-md">
+    <div class="col-sm-6 vm-md">
         <div class="form-inline">
             <label class="sr-only" for="inlineFormInput">Name</label>
             <select class="form-control update-level">
@@ -39,6 +39,13 @@
                 <option value="2">Production</option>
             </select>
             <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#updateAllModal">Update Sites</button>
+        </div>
+    </div>
+    <div class="col-sm-6 vm-md text-right">
+        <div class="form-inline">
+            <form method="POST">
+                <button type="submit" class="btn btn-info">Sync Jobs</button>
+            </form>
         </div>
     </div>
 </div>
