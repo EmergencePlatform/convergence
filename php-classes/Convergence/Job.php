@@ -99,6 +99,14 @@ class Job extends \ActiveRecord
             // Search active jobs for pending jobs to find updates
             foreach ($pendingJobs as $PendingJob) {
 
+                // Update any lost jobs
+                if (empty($activeJobs[$PendingJob->Site->Handle])) {
+                    $PendingJob->Status = 'failed';
+                    $PendingJob->Result = 'lost on server';
+                    $PendingJob->save();
+                    continue;
+                }
+
                 $activeJob = $activeJobs[$PendingJob->Site->Handle][$PendingJob->UID];
 
                 if ($activeJob && $activeJob['status'] !== 'pending') {
