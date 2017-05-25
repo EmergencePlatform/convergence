@@ -100,6 +100,7 @@ class SitesRequestHandler extends \RecordsRequestHandler
                     break;
                 case 'jobs-sync':
                     Job::syncActiveJobs();
+                    $Record = Site::getByID($Record->ID);
                     break;
             }
         }
