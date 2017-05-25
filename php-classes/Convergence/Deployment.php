@@ -13,11 +13,10 @@ class Deployment extends \ActiveRecord
     public static $defaultParentHostname = 'skeleton-v2.emr.ge';
     public static $defaultParentInheritanceKey = 'lKhjNhwXoM8rLbXw';
     public static $blacklistedHostnames = [];
-
-    public static $useSSL = false;
-    public static $defaultSSLCert;
-    public static $defaultSSLKey;
-
+    public static $sslPaths = [
+        // 'example.com' => '/emergence/sites/example/ssl/example.com',
+        // '*.example.com' => '/emergence/sites/example/ssl/example.com',
+    ];
     public static $onBeforeStagingDeployment;
     public static $onBeforeProductionDeployment;
 
@@ -131,6 +130,15 @@ class Deployment extends \ActiveRecord
             $stagingConfig['parent_key'] = static::$defaultParentInheritanceKey;
         }
 
+        // Check if ssl cert is avaiable for hostname
+        $stagingCertPath = static::getAvailableSSLCert($stagingConfig['primary_hostname']);
+        if ($stagingCertPath) {
+            $stagingConfig['ssl'] = [
+                'certificate' => $stagingCertPath . '.crt',
+                'certificate_key' => $stagingCertPath . '.key'
+            ];
+        }
+
         // On before staging deploy
         if (is_callable(static::$onBeforeStagingDeployment)) {
             $stagingConfig = call_user_func(static::$onBeforeStagingDeployment, $this, $stagingConfig);
@@ -161,12 +169,12 @@ class Deployment extends \ActiveRecord
             'primary_hostname' => $primaryHostname
         ];
 
-        // Apply default ssl cert / key, only use if
-        // wildcard ssl is available for $defaultHostname
-        if (static::$useSSL == true) {
+        // Check if ssl cert is avaiable for hostname
+        $prodCertPath = static::getAvailableSSLCert($primaryHostname);
+        if ($prodCertPath) {
             $prodConfig['ssl'] = [
-                'certificate' => static::$defaultSSLCert,
-                'certificate_key' => static::$defaultSSLKey
+                'certificate' => $stagingCertPath . '.crt',
+                'certificate_key' => $stagingCertPath . '.key'
             ];
         }
 
@@ -202,6 +210,27 @@ class Deployment extends \ActiveRecord
 
         // Update new site file systems
         $this->requestFileSystemUpdates();
+    }
+
+    /*
+     * Returns an ssl crt / key path for given hostname
+     *
+     * @params string $hostname
+     * @return mixed
+     */
+    public static function getAvailableSSLCert($hostname)
+    {
+        if (!empty(static::$sslPaths[$hostname])) {
+            return static::$sslPaths[$hostname];
+        }
+
+        // Check for wildcard
+        $wildcardPattern = '*' . substr($hostname, strpos($hostname, '.'));
+        if (!empty(static::$sslPaths[$wildcardPattern])) {
+            return static::$sslPaths[$wildcardPattern];
+        }
+
+        return false;
     }
 
     /*
