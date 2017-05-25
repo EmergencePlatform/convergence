@@ -254,18 +254,6 @@ class Deployment extends \ActiveRecord
     }
 
     /*
-     * Syncs the file system for all sites
-     *
-     * @return void
-     */
-    public function syncFileSystemUpdates()
-    {
-        foreach ($this->Sites as $Site) {
-            $Site->syncFileSystemUpdates();
-        }
-    }
-
-    /*
      * Determines if one or mutiple sites in deployment are currently updating
      *
      * @return bool
