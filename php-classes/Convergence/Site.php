@@ -128,6 +128,20 @@ class Site extends \ActiveRecord
     }
 
     /*
+     * Detemines if ssl cert is avaiable for site
+     *
+     * @return bool
+     */
+    public function sslEnabled()
+    {
+        if (Deployment::getAvailableSSLCert($this->PrimaryHostname->Hostname)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /*
      * Get list of jobs from memory
      *
      * @return array
