@@ -245,7 +245,8 @@ class Deployment extends \ActiveRecord
         foreach ($this->Sites as $Site) {
             array_push($jobsData, [
                 'handle' => $Site->Handle,
-                'action' => 'vfs-summary'
+                'action' => 'vfs-summary',
+                'cursor' => $Site->ParentCursor
             ]);
         }
 
