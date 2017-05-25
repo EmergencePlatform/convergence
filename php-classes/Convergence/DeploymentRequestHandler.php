@@ -13,19 +13,6 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
     static public $browseLimitDefault = 20;
     public static $browseOrder = ['Label' => 'DESC'];
 
-    public static function handleRecordsRequest($action = false)
-    {
-        switch ($action ? $action : $action = static::shiftPath())
-        {
-            case 'update':
-                return static::handleSystemUpdateRequest();
-            case 'update-status':
-                return static::handleUpdateStatusRequest();
-            default:
-                return parent::handleRecordsRequest($action);
-        }
-    }
-
     public static function handleRecordRequest(\ActiveRecord $Record, $action = false)
     {
         switch ($action ? $action : $action = static::shiftPath()) {
@@ -58,6 +45,23 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
         ]);
     }
 
+    public static function handleRecordsRequest($action = false)
+    {
+        switch ($action ? $action : $action = static::shiftPath())
+        {
+            case 'update':
+                return static::handleSystemUpdateRequest();
+            case 'update-status':
+                return static::handleUpdateStatusRequest();
+            default:
+                if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                    Job::syncActiveJobs();
+                }
+
+                return parent::handleRecordsRequest($action);
+        }
+    }
+
     public static function handleSystemUpdateRequest()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -70,58 +74,73 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
         // Get update level, 0 = all, 1 = staging, 2 = production
         $level = intval($_POST['level']);
 
-        // Loop over all deployments
-        $deployments = Deployment::getAll();
-        $jobsData = [];
+        foreach (Host::getAll() as $Host) {
+            $jobsData = [];
 
-        foreach ($deployments as $Deployment) {
+            foreach ($Host->Deployments as $Deployment) {
 
-            // Set all sites in all deployments to updated
-            if ($level == 0) {
+                // Set all sites in all deployments to updated
+                if ($level == 0) {
 
-                foreach ($Deployment->Sites as $Site) {
-                    $Deployment->requestFileSystemUpdates();
-                }
-
-            // Only set production or staging sites to updated
-            } else {
-
-                $StagingSite = Site::getByWhere([
-                    'DeploymentID' => $Deployment->ID,
-                    'ParentSiteID' => $Deployment->ParentSiteID
-                ]);
-
-                // Only update the staging sites as updating
-                if ($level == 1) {
-                    $StagingSite->Updating = 1;
-                    $StagingSite->save();
+                    // Get staging site and use child flag
+                    $StagingSite = Site::getByWhere([
+                        'DeploymentID' => $Deployment->ID,
+                        'ParentSiteID' => $Deployment->ParentSiteID
+                    ]);
 
                     array_push($jobsData, [
                         'handle' => $StagingSite->Handle,
-                        'action' => 'vfs-update'
+                        'action' => 'vfs-update',
+                        'cursor' => $StagingSite->ParentCursor,
+                        'updateChild' => true
                     ]);
 
-                // Only set the production sites as updating
+                    foreach ($Deployment->Sites as $Site) {
+                        $Site->Updating = true;
+                        $Site->save();
+                    }
+
+                // Only set production or staging sites to updated
                 } else {
-                    $ProductionSite = Site::getByWhere([
+
+                    $StagingSite = Site::getByWhere([
                         'DeploymentID' => $Deployment->ID,
-                        'ParentSiteID' => $StagingSite->ID
+                        'ParentSiteID' => $Deployment->ParentSiteID
                     ]);
 
-                    $ProductionSite->Updating = 1;
-                    $ProductionSite->save();
+                    // Only update the staging sites as updating
+                    if ($level == 1) {
+                        $StagingSite->Updating = true;
+                        $StagingSite->save();
 
-                    array_push($jobsData, [
-                        'handle' => $ProductionSite->Handle,
-                        'action' => 'vfs-update'
-                    ]);
+                        array_push($jobsData, [
+                            'handle' => $StagingSite->Handle,
+                            'action' => 'vfs-update',
+                            'cursor' => $StagingSite->ParentCursor
+                        ]);
+
+                    // Only set the production sites as updating
+                    } else {
+                        $ProductionSite = Site::getByWhere([
+                            'DeploymentID' => $Deployment->ID,
+                            'ParentSiteID' => $StagingSite->ID
+                        ]);
+
+                        $ProductionSite->Updating = true;
+                        $ProductionSite->save();
+
+                        array_push($jobsData, [
+                            'handle' => $ProductionSite->Handle,
+                            'action' => 'vfs-update',
+                            'cursor' => $ProductionSite->Cursor
+                        ]);
+                    }
                 }
             }
-        }
 
-        // Create new jobs
-        if ($Host = Host::getAvailable()) {
-            $Host->submitBulkJobsRequest($jobsData);
+            if ($jobsData) {
+                $Host->executeBulkJobsRequest($jobsData);
+            }
         }
 
         \JSON::respond(['success' => true], false);
@@ -134,11 +153,9 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
      */
     public static function handleUpdateStatusRequest()
     {
-        $progress = Site::getUpdateProgress();
-
         \JSON::respond([
             'success' => true,
-            'updating' => $progress
+            'updating' => Site::getUpdateProgress()
         ]);
     }
 }
