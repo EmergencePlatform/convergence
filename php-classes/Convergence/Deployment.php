@@ -173,8 +173,8 @@ class Deployment extends \ActiveRecord
         $prodCertPath = static::getAvailableSSLCert($primaryHostname);
         if ($prodCertPath) {
             $prodConfig['ssl'] = [
-                'certificate' => $stagingCertPath . '.crt',
-                'certificate_key' => $stagingCertPath . '.key'
+                'certificate' => $prodCertPath . '.crt',
+                'certificate_key' => $prodCertPath . '.key'
             ];
         }
 
