@@ -113,12 +113,22 @@ class Job extends \ActiveRecord
                     // Update site on vfs update
                     if ($PendingJob->Action == 'vfs-update') {
 
+                        // Update pending job
                         $initialUpdate = boolval($PendingJob->Site->ParentCursor);
                         $PendingJob->Site->ParentCursor = $activeJob['command']['result']['parentCursor'];
                         $PendingJob->Site->LocalCursor = $activeJob['command']['result']['localCursor'];
                         $PendingJob->Site->Updating = false;
                         $PendingJob->Site->save();
 
+                        // Conditionally update child site
+                        if ($activeJob['command']['updateChild'] === true) {
+                            $childSites = Site::getAllByField('ParentSiteID', $PendingJob->Site->ID);
+                            foreach ($childSites as $ChildSite) {
+                                $ChildSite->requestFileSystemUpdate();
+                            }
+                        }
+
+                        // Fire initial vfs update event
                         if ($initialUpdate) {
                             \Emergence\EventBus::fireEvent(
                                 'afterInitialVFSUpdate',
