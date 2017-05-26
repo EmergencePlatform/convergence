@@ -132,7 +132,7 @@ class Job extends \ActiveRecord
                         $Site->save();
 
                         // Conditionally update child site
-                        if ($activeJob['command']['updateChild'] === true) {
+                        if (!empty($activeJob['command']['updateChild']) && $activeJob['command']['updateChild'] === true) {
                             $childSites = Site::getAllByField('ParentSiteID', $Site->ID);
                             foreach ($childSites as $ChildSite) {
                                 $ChildSite->requestFileSystemUpdate();
