@@ -9,7 +9,7 @@ class Site extends \ActiveRecord
     public static $pluralNoun = 'sites';
     public static $collectionRoute = 'sites';
 
-	public static $fields = [
+    public static $fields = [
         'Label',
         'Handle' => [
             'unique' => true
@@ -20,14 +20,14 @@ class Site extends \ActiveRecord
         'LocalCursor' => 'uint',
         'ParentCursor' => 'uint',
         'Updating' => [
-        'type' => 'boolean',
+            'type' => 'boolean',
             'default' => false
         ],
         'DeploymentID' => 'uint',
         'HostID' => 'uint',
         'PrimaryHostnameID' => 'uint',
         'ParentSiteID' => [
-        'type' => 'uint',
+            'type' => 'uint',
             'default' => 0
         ]
     ];
