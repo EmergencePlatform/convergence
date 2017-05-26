@@ -56,12 +56,64 @@ class Deployment extends \ActiveRecord
         ]
     ];
 
-	public static $validators = [
+    public static $validators = [
         'PrimaryHostname' => [
             'validator' => 'FQDN',
             'required' => false
         ]
-	];
+    ];
+
+    public static $dynamicFields = [
+        'ParentSite',
+        'Sites',
+        'Admins',
+        'Host',
+        'StagingHostname' => [
+            'method' => 'getStagingHostname'
+        ],
+        'ProductionHostname' => [
+            'method' => 'getProductionHostname'
+        ]
+    ];
+
+    /*
+     * Returns the staging hostname for deployment
+     *
+     * @return mixed
+     */
+    public function getStagingHostname()
+    {
+        $Site = Site::getByWhere([
+            'DeploymentID' => $this->ID,
+            'ParentSiteID' => $this->ParentSiteID
+        ]);
+
+        if ($Site) {
+            return $Site->PrimaryHostname->Hostname;
+        }
+
+        return false;
+    }
+
+    /*
+     * Returns the production hostname for deployment
+     *
+     * @return object
+     */
+    public function getProductionHostname()
+    {
+        $Site = Site::getByWhere([
+            'DeploymentID' => $this->ID,
+        ],[
+            "ParentSiteID != $this->ParentSiteID"
+        ]);
+
+        if ($Site) {
+            return $Site->PrimaryHostname->Hostname;
+        }
+
+        return false;
+    }
 
     /*
      * Create staging and production site for deployment
