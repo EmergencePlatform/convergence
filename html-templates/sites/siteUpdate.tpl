@@ -20,6 +20,7 @@
 {/block}
 
 {block content}
+{load_templates subtemplates/paging.tpl}
 
 <div class="page-header">
     <div class='btn-toolbar pull-right'>
@@ -52,7 +53,13 @@
             </form>
         </div>
         <h2>Jobs</h2>
-        {$jobs = Convergence\Job::getAllByWhere(array('SiteID' => $data->ID), array('limit' => 20, 'order' => 'ID DESC'))}
+        {$jobs = Convergence\Job::getAllByWhere(array(
+            'SiteID' => $data->ID
+            ), array(
+            'limit' => 20,
+            'order' => 'ID DESC',
+            'offset' => $.get.offset
+        ))}
         {if $jobs}
             <table class="table table-condensed">
                 <thead>
@@ -62,6 +69,7 @@
                         <th>Received</th>
                         <th>Started</th>
                         <th>Completed</th>
+                        <th>Date</th>
                         <th>Action</th>
                         <th></th>
                     </tr>
@@ -74,8 +82,9 @@
                             <td>{date('g:i:s a', $Job->Received)}</td>
                             <td>{if $Job->Started}{date('g:i:s a', $Job->Started)}{/if}</td>
                             <td>{if $Job->Completed}{date('g:i:s a', $Job->Completed)}{/if}</td>
+                            <td>{date('n/j/y', $Job->Received)}</td>
                             <td>{$Job->Action}</td>
-                            <td><a href="#">Click for Results</td>
+                            <td><a href="#">Results</td>
                         </tr>
                         <tr>
                             <td colspan="7" class="hiddenRow">
@@ -90,6 +99,7 @@
                     {/foreach}
                 </tbody>
             </table>
+            {pagingLinks Convergence\Job::getCount(array('SiteID' => $data->ID)), 20}
         {else}
             <p>No jobs</p>
         {/if}
