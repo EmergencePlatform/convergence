@@ -176,7 +176,8 @@ class Site extends \ActiveRecord
     public function requestFileSystemSummary()
     {
         $result = $this->executeRequest('jobs', 'POST', [[
-            'action' => 'vfs-summary'
+            'action' => 'vfs-summary',
+            'cursor' => $this->ParentCursor
         ]]);
 
         // Create coorelated job
