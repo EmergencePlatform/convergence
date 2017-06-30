@@ -2,6 +2,12 @@
 
 {block title}{$data->Label} | {$dwoo.parent}{/block}
 
+{block search-form}
+    <form action="/deployments" class="navbar-form navbar-right">
+        <input type="text" name="q" class="form-control" placeholder="Search..." {if $.get.q}value="{$.get.q}"{/if}>
+    </form>
+{/block}
+
 {block content}
 <div class="page-header">
     <div class='btn-toolbar pull-right'>

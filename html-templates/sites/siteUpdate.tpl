@@ -19,6 +19,12 @@
     {/literal}
 {/block}
 
+{block search-form}
+    <form action="/sites" class="navbar-form navbar-right">
+        <input type="text" name="q" class="form-control" placeholder="Search..." {if $.get.q}value="{$.get.q}"{/if}>
+    </form>
+{/block}
+
 {block content}
 {load_templates subtemplates/paging.tpl}
 
