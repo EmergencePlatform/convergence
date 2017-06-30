@@ -47,7 +47,6 @@
                     {/foreach}
                 </tbody>
             </table>
-            {$total = Convergence\Site::getCount()}
             {pagingLinks $total Convergence\SitesRequestHandler::$browseLimitDefault}
         {else}
             <p>No sites available.</p>

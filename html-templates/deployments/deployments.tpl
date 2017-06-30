@@ -82,7 +82,7 @@
         {/if}
     </div>
 </div>
-{$total = Convergence\Deployment::getCount()}
+
 {pagingLinks $total Convergence\DeploymentRequestHandler::$browseLimitDefault}        
 {/block}
 

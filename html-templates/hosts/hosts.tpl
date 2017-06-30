@@ -38,8 +38,6 @@
         {else}
             <p>Sorry, no hosts available.</p>
         {/if}
-        {$total = Convergence\Deployment::getCount()}
-        {pagingLinks $total Convergence\DeploymentRequestHandler::$browseLimitDefault}   
     </div>
 </div>     
 {/block}

@@ -11,7 +11,7 @@ class DeploymentRequestHandler extends \RecordsRequestHandler
     static public $accountLevelWrite = 'Administrator';
     static public $accountLevelAPI = 'Administrator';
     static public $browseLimitDefault = 20;
-    public static $browseOrder = ['Label' => 'DESC'];
+    public static $browseOrder = ['Label' => 'ASC'];
 
     public static function handleRecordRequest(\ActiveRecord $Record, $action = false)
     {

@@ -10,7 +10,7 @@ class SitesRequestHandler extends \RecordsRequestHandler
     static public $accountLevelBrowse = 'Administrator';
     static public $accountLevelWrite = 'Administrator';
     static public $accountLevelAPI = 'Administrator';
-    public static $browseLimitDefault = 100;
+    public static $browseLimitDefault = 20;
     public static $browseOrder = ['ID' => 'ASC'];
 
     public static function handleRecordRequest(\ActiveRecord $Record, $action = false)
