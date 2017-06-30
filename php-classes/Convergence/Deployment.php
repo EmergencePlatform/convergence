@@ -76,6 +76,14 @@ class Deployment extends \ActiveRecord
         ]
     ];
 
+    public static $searchConditions = [
+        'Label' => [
+            'qualifiers' => ['any', 'label'],
+            'points' => 1,
+            'sql' => 'Label Like "%%%s%%"'
+        ]
+    ];
+
     /*
      * Returns the staging hostname for deployment
      *
@@ -140,7 +148,7 @@ class Deployment extends \ActiveRecord
         // Generate unique handle
         $len = 14;
         $hostname = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $this->Label)));
-        $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len));
+        $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len-1));
         while ($handle > 14) {
             $len--;
             $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len));
