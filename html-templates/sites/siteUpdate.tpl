@@ -93,7 +93,7 @@
                             <td><a href="#">Results</td>
                         </tr>
                         <tr>
-                            <td colspan="7" class="hiddenRow">
+                            <td colspan="8" class="hiddenRow">
                                 <div class="accordian-body collapse" id="job{$Job->ID}">
                                     <h4>Command</h4>
                                     {dump $Job->Command}

@@ -71,6 +71,7 @@
                             <th>Received</th>
                             <th>Started</th>
                             <th>Completed</th>
+                            <th>Date</th>
                             <th>Action</th>
                             <th></th>
                         </tr>
@@ -83,11 +84,12 @@
                                 <td>{date('g:i:s a', $Job->Received)}</td>
                                 <td>{if $Job->Started}{date('g:i:s a', $Job->Started)}{/if}</td>
                                 <td>{if $Job->Completed}{date('g:i:s a', $Job->Completed)}{/if}</td>
+                                <td>{date('n/j/y', $Job->Received)}</td>
                                 <td>{$Job->Action}</td>
-                                <td><a href="#">Click for Results</td>
+                                <td><a href="#">Results</td>
                             </tr>
                             <tr>
-                                <td colspan="7" class="hiddenRow">
+                                <td colspan="8" class="hiddenRow">
                                     <div class="accordian-body collapse" id="job{$Job->ID}">
                                         <h4>Command</h4>
                                         {dump $Job->Command}
