@@ -37,9 +37,11 @@
                     <li><a href="/deployments">Deployments</a></li>
                     <li><a href="/sites">Sites</a></li>
                 </ul>
-                <form class="navbar-form navbar-right">
-                    <input type="text" name="q" class="form-control" placeholder="Search by handle..." {if $.get.q}value="{$.get.q}"{/if}>
-                </form>
+                {block "search-form"}
+                    <form class="navbar-form navbar-right">
+                        <input type="text" name="q" class="form-control" placeholder="Search..." {if $.get.q}value="{$.get.q}"{/if}>
+                    </form>
+                {/block}
             </div>
         </div>
     </nav>
