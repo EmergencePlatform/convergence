@@ -115,7 +115,11 @@ class Job extends \ActiveRecord
                     $PendingJob->Status = $activeJob['status'];
                     $PendingJob->Started = $activeJob['started'] / 1000;
                     $PendingJob->Completed = $activeJob['completed'] / 1000;
-                    $PendingJob->Result = $activeJob['command']['result'];
+                    if (!empty($activeJob['command']['result'])) {
+                        $PendingJob->Result = $activeJob['command']['result'];
+                    } elseif (!empty($activeJob['message'])) {
+                        $PendingJob->Result = $activeJob['message'];
+                    }
                     $PendingJob->save();
 
                     // Update site on vfs update
