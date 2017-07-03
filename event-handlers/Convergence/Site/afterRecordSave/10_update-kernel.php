@@ -16,8 +16,6 @@ if (!$_EVENT['Record']->isNew) {
             "certificate" => $sslPath . ".crt",
             "certificate_key" => $sslPath . ".key",
         ];
-    } else {
-        $data['ssl'] = [];
     }
 
     $_EVENT['Record']->executeRequest('', 'PATCH', $data);
