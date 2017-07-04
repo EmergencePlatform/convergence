@@ -2,21 +2,13 @@
 
 namespace Convergence;
 
-// Patch kernel with updated config
-if (!$_EVENT['Record']->isNew) {
+// Patch kernel with updated label config
+if (!$_EVENT['Record']->isNew && !empty($_EVENT['Record']->originalValues['Label'])) {
+
     $data = [
-        'label' => $_EVENT['Record']->Label,
-        'primary_hostname' => $_EVENT['Record']->PrimaryHostname->Hostname
+        'label' => $_EVENT['Record']->Label
     ];
 
-    $sslPath = Deployment::getAvailableSSLCert($_EVENT['Record']->PrimaryHostname->Hostname);
-
-    if ($sslPath) {
-        $data['ssl'] = [
-            "certificate" => $sslPath . ".crt",
-            "certificate_key" => $sslPath . ".key",
-        ];
-    }
-
-    $_EVENT['Record']->executeRequest('', 'PATCH', $data);
+    $result = $_EVENT['Record']->executeRequest('', 'PATCH', $data);
+    Job::createFromJobsRequest($_EVENT['Record']->Host, $result);
 }
