@@ -52,8 +52,16 @@ class Job extends \ActiveRecord
     public static function createFromJobsRequest($Host, $results)
     {
         if ($results['success'] == true) {
+            $jobs = [];
 
-            foreach ($results['jobs'] as $job) {
+            if (is_array($results['jobs'])) {
+                $jobs = $results['jobs'];
+
+            } elseif (!empty($results['job'])) {
+                array_push($jobs, $results['job']);
+            }
+
+            foreach ($jobs as $job) {
                 $Site = Site::getByField('Handle', $job['handle']);
 
                 if (!$Site) {
@@ -65,8 +73,8 @@ class Job extends \ActiveRecord
                     'Received' => $job['received'] / 1000,
                     'Action' => $job['command']['action'],
                     'Command' => $job['command'],
-                    'Site' => $Site,
-                    'Host' => $Host
+                    'SiteID' => $Site->ID,
+                    'HostID' => $Host->ID
                 ], true);
             }
         }
@@ -103,6 +111,9 @@ class Job extends \ActiveRecord
                 if (empty($activeJobs[$PendingJob->Site->Handle])) {
                     $PendingJob->Status = 'failed';
                     $PendingJob->Result = 'lost on server';
+                    if ($PendingJob->Site) {
+                        $PendingJob->Site->Updating = false;
+                    }
                     $PendingJob->save();
                     continue;
                 }
