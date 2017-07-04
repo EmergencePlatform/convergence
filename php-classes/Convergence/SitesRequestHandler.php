@@ -27,10 +27,13 @@ class SitesRequestHandler extends \RecordsRequestHandler
     {
         // Create / assign primary hostname
         if (!empty($data['PrimaryHostname'])) {
-            if ($PrimaryHostname = Hostname::getByField('Hostname', $data['PrimaryHostname'])) {
-                $Record->PrimaryHostname = $PrimaryHostname;
+            if ($Record->PrimaryHostname) {
+                $Record->PrimaryHostname->Hostname = $data['PrimaryHostname'];
             } else {
-                $Record->PrimaryHostname = Hostname::create(['Hostname' => $data['PrimaryHostname']]);
+                $Record->PrimaryHostname = Hostname::create([
+                    'Hostname' => $data['PrimaryHostname'],
+                    'Site' => $Record
+                ]);
             }
         }
 
@@ -66,14 +69,42 @@ class SitesRequestHandler extends \RecordsRequestHandler
                 'hostnames' => [],
                 'inheritance_key' => '',
                 'label' => $Record->Label,
-                'parent_hostname' => $Record->ParentSite->PrimaryHostname->Hostname,
-                'parent_key' => $Record->ParentSite->InheritanceKey,
                 'primary_hostname' => $Record->PrimaryHostname->Hostname
             ];
 
-            $siteResponse = $Record->Host->createSite($configs);
-            $Record->InheritanceKey = $siteResponse['data']['inheritance_key'];
-            $Record->save();
+            // @todo validate one or another is available
+            if ($Record->ParentSite) {
+                $configs['parent_hostname'] = $Record->PrimaryHostname->Hostname;
+                $configs['parent_key'] = $Record->ParentSite->InheritanceKey;
+            } else {
+                $configs['parent_key'] = $data[''];
+                $configs['parent_key'] = $data[''];
+            }
+
+            // Get ssl path for site
+            if ($sslPath = Deployment::getAvailableSSLCert($Record->PrimaryHostname->Hostname)) {
+                $configs['ssl'] = [
+                    "certificate" => $sslPath . ".crt",
+                    "certificate_key" => $sslPath . ".key",
+                ];
+            }
+
+            //$siteResponse = $Record->Host->createSite($configs);
+            //$Record->InheritanceKey = $siteResponse['data']['inheritance_key'];
+            //$Record->save();
+
+        } elseif (!empty($data['UpdateSSL'])) {
+            if ($sslPath = Deployment::getAvailableSSLCert($Record->PrimaryHostname->Hostname)) {
+                $configs = [
+                    'ssl' => [
+                        "certificate" => $sslPath . ".crt",
+                        "certificate_key" => $sslPath . ".key"
+                    ]
+                ];
+
+                $result = $Record->executeRequest('', 'PATCH', $configs);
+                Job::createFromJobsRequest($Record->Host, $result);
+            }
         }
     }
 
