@@ -10,8 +10,8 @@ class Hostname extends \ActiveRecord
 
     public static $fields = [
         'Hostname' => [
-        'unique' => true
-    ],
+            'unique' => true
+        ],
         'SiteID' => 'uint'
     ];
 
@@ -57,9 +57,10 @@ class Hostname extends \ActiveRecord
     {
         parent::save($deep);
 
-        if (!$this->isNew && $this->isFieldDirty('Hostname') && $this->SiteID) {
+        if (!$this->isNew && $this->isFieldDirty('Hostname') && $this->Site) {
             $params = ['primary_hostname' => $this->Hostname];
-            $response = $this->Site->executeRequest('', 'PATCH', $params);
+            $result = $this->Site->executeRequest('', 'PATCH', $params);
+            Job::createFromJobsRequest($this->Site->Host, $result);
         }
     }
 }
