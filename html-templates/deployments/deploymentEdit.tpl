@@ -64,7 +64,7 @@
                 <div class="form-group">
                     <label for="Status">Parent Site</label>
                     <select name="ParentSiteID" id="ParentSiteID" class="form-control" {if !$data->isPhantom && $data->Status !== 'draft'}disabled{/if}>
-                        <option value="0">Skeleton V2</option>
+                        <option value="0">Default ({Convergence\Deployment::$defaultParentHostname})</option>
                         {foreach item=Site from=$sites}
                             <option value="{$Site->ID}" {if $Site->ID == $data->ParentSiteID}selected{/if}>{$Site->Label}</option>
                         {/foreach}
