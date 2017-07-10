@@ -13,6 +13,7 @@ class Deployment extends \ActiveRecord
     public static $defaultParentHostname = 'skeleton-v2.emr.ge';
     public static $defaultParentInheritanceKey = 'lKhjNhwXoM8rLbXw';
     public static $blacklistedHostnames = [];
+    public static $blacklistedHandles = [];
     public static $sslPaths = [
         // 'example.com' => '/emergence/sites/example/ssl/example.com',
         // '*.example.com' => '/emergence/sites/example/ssl/example.com',
@@ -146,10 +147,10 @@ class Deployment extends \ActiveRecord
         }
 
         // Generate unique handle
-        $len = 14;
-        $hostname = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $this->Label)));
-        $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len-1));
-        while ($handle > 14) {
+        $len = 13;
+        $hostname = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', trim($this->Label))));
+        $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len));
+        while (strlen($handle) > 13 || in_array($handle, static::$blacklistedHandles)) {
             $len--;
             $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len));
         }
