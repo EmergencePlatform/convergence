@@ -62,10 +62,9 @@ class Site extends \ActiveRecord
             'type' => 'one-one',
             'class' => Hostname::class
         ],
-        'SecondaryHostnames' => [
+        'Hostnames' => [
             'type' => 'one-many',
-            'class' => Hostname::class,
-            // @todo 'conditions' =>
+            'class' => Hostname::class
         ],
         'ParentSite' => [
             'type' => 'one-one',
