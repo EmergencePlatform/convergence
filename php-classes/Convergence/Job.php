@@ -136,15 +136,15 @@ class Job extends \ActiveRecord
                     // Update site on vfs update
                     if ($PendingJob->Action == 'vfs-update') {
 
+                        // Get updated site record
+                        $Site = Site::getByID($PendingJob->SiteID);
+
                         // Skip vfs-update actions on failed job
                         if ($PendingJob->Status == 'failed') {
                             $Site->Updating = false;
                             $Site->save();
                             continue;
                         }
-
-                        // Get updated site record
-                        $Site = Site::getByID($PendingJob->SiteID);
 
                         // Update pending job's site
                         $initialUpdate = !boolval($Site->ParentCursor);
