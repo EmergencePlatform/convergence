@@ -10,22 +10,39 @@ class Site extends \ActiveRecord
     public static $collectionRoute = 'sites';
 
     public static $fields = [
-        'Label',
+        'Label' => [
+            'default' => null
+        ],
         'Handle' => [
             'unique' => true
         ],
         'InheritanceKey' => [
             'notnull' => false
         ],
-        'LocalCursor' => 'uint',
-        'ParentCursor' => 'uint',
+        'LocalCursor' => [
+            'type' => 'uint',
+            'default' => 0
+        ],
+        'ParentCursor' => [
+            'type' => 'uint',
+            'default' => 0
+        ],
         'Updating' => [
             'type' => 'boolean',
             'default' => false
         ],
-        'DeploymentID' => 'uint',
-        'HostID' => 'uint',
-        'PrimaryHostnameID' => 'uint',
+        'DeploymentID' => [
+            'type' => 'uint',
+            'default' => 0
+        ],
+        'HostID' => [
+            'type' => 'uint',
+            'default' => 0
+        ],
+        'PrimaryHostnameID' => [
+            'type' => 'uint',
+            'default' => 0
+        ],
         'ParentSiteID' => [
             'type' => 'uint',
             'default' => 0
