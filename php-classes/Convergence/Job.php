@@ -21,13 +21,31 @@ class Job extends \ActiveRecord
         ],
         'UID',
         'Action',
-        'Received' => 'timestamp',
-        'Started' => 'timestamp',
-        'Completed' => 'timestamp',
+        'Received' => [
+            'type' => 'timestamp',
+            'default' => null
+        ],
+        'Started' => [
+            'type' => 'timestamp',
+            'default' => null
+        ],
+        'Completed' => [
+            'type' => 'timestamp',
+            'default' => null
+        ],
         'Command' => 'json',
-        'Result' => 'json',
-        'SiteID' => 'uint',
-        'HostID' => 'uint'
+        'Result' => [
+            'type' => 'json',
+            'default' => null
+        ],
+        'SiteID' => [
+            'type' => 'uint',
+            'default' => 0
+        ],
+        'HostID' => [
+            'type' => 'uint',
+            'default' => 0
+        ]
     ];
 
     public static $relationships = [

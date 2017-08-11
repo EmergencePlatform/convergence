@@ -10,9 +10,13 @@ class Hostname extends \ActiveRecord
 
     public static $fields = [
         'Hostname' => [
-            'unique' => true
+            'unique' => true,
+            'default' => null
         ],
-        'SiteID' => 'uint'
+        'SiteID' => [
+            'type' => 'uint',
+            'default' => 0
+        ]
     ];
 
     public static $validators = [

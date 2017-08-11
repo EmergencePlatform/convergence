@@ -35,7 +35,10 @@ class Deployment extends \ActiveRecord
             'type' => 'uint',
             'default' => 0
         ],
-        'HostID' => 'uint'
+        'HostID' => [
+            'type' => 'uint',
+            'default' => 0
+        ]
     ];
 
     public static $relationships = [
