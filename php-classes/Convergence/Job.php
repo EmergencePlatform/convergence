@@ -142,8 +142,13 @@ class Job extends \ActiveRecord
 
                     // Update job
                     $PendingJob->Status = $activeJob['status'];
-                    $PendingJob->Started = $activeJob['started'] / 1000;
-                    $PendingJob->Completed = $activeJob['completed'] / 1000;
+                    if (!empty($activeJob['started'])) {
+                        $PendingJob->Started = $activeJob['started'] / 1000;
+                    }
+                    if (!empty($activeJob['completed'])) {
+                        $PendingJob->Completed = $activeJob['completed'] / 1000;
+                    }
+
                     if (!empty($activeJob['command']['result'])) {
                         if (strlen(json_encode($activeJob['command']['result'])) > 60000) {
                             $PendingJob->Result = 'Output too long';
