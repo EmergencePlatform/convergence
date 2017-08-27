@@ -114,11 +114,19 @@ class Deployment extends \ActiveRecord
      */
     public function getProductionHostname()
     {
-        $Site = Site::getByWhere([
-            'DeploymentID' => $this->ID,
-        ],[
-            "ParentSiteID != $this->ParentSiteID"
-        ]);
+        try {
+            $Site = Site::getByQuery('
+                Select * from `%1$s`
+                WHERE DeploymentID = %2$d
+                AND ParentSiteID != %3$d
+            ', [
+                Site::$tableName,
+                $this->ID,
+                $this->ParentSiteID
+            ]);
+        } catch (\TableNotFoundException $e) {
+            $Site = false;
+        }
 
         if ($Site) {
             return $Site->PrimaryHostname->Hostname;
