@@ -9,10 +9,16 @@ class DeploymentAdmin extends \ActiveRecord
     public static $pluralNoun = 'deployment admins';
 
     public static $fields = [
-        'DeploymentID' => 'uint',
-        'UserID' => 'uint'
+        'DeploymentID' => [
+            'type' => 'uint',
+            'default' => 0
+        ],
+        'UserID' => [
+            'type' => 'uint',
+            'default' => 0
+        ]
     ];
-    
+
     public static $relationships = [
         'Deployment' => [
             'type' => 'one-one',
