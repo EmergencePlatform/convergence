@@ -23,14 +23,17 @@ class Deployment extends \ActiveRecord
 
     public static $fields = [
         'Label' => [
-            'required' => true
+            'required' => true,
+            'default' => null
         ],
         'Status' => [
             'type' => 'enum',
             'values'=> ['draft', 'pending', 'provisioning', 'available', 'suspended', 'interrupted'],
             'default' => 'draft'
         ],
-        'PrimaryHostname',
+        'PrimaryHostname' => [
+            'default' => null
+        ],
         'ParentSiteID' => [
             'type' => 'uint',
             'default' => 0
