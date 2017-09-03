@@ -19,8 +19,12 @@ class Job extends \ActiveRecord
             ],
             'default' => 'pending'
         ],
-        'UID',
-        'Action',
+        'UID' => [
+            'default' => null
+        ],
+        'Action' => [
+            'default' => null
+        ],
         'Received' => [
             'type' => 'timestamp',
             'default' => null
@@ -33,7 +37,10 @@ class Job extends \ActiveRecord
             'type' => 'timestamp',
             'default' => null
         ],
-        'Command' => 'json',
+        'Command' => [
+            'type' => 'json',
+            'default' => null
+        ],
         'Result' => [
             'type' => 'json',
             'default' => null

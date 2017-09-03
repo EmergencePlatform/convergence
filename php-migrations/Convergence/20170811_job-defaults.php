@@ -8,6 +8,18 @@ if (!static::tableExists('convergence_jobs')) {
 }
 
 // migration
+if (static::getColumn('convergence_jobs', 'UID')) {
+    print("Setting default UID value to `convergence_jobs`");
+    DB::nonQuery("ALTER TABLE `convergence_jobs` CHANGE COLUMN `UID` `UID` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL  COMMENT '' AFTER `Status`;");
+    $skipped = false;
+}
+
+if (static::getColumn('convergence_jobs', 'Action')) {
+    print("Setting default UID value to `convergence_jobs`");
+    DB::nonQuery("ALTER TABLE `convergence_jobs` CHANGE COLUMN `Action` `Action` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL  COMMENT '' AFTER `UID`;");
+    $skipped = false;
+}
+
 if (static::getColumn('convergence_jobs', 'Received')) {
     print("Setting default Received value to `convergence_jobs`");
     DB::nonQuery("ALTER TABLE `convergence_jobs` CHANGE COLUMN `Received` `Received` TIMESTAMP NULL DEFAULT NULL  COMMENT '' AFTER `Action`;");
@@ -23,6 +35,12 @@ if (static::getColumn('convergence_jobs', 'Started')) {
 if (static::getColumn('convergence_jobs', 'Completed')) {
     print("Setting default Completed value to `convergence_jobs`");
     DB::nonQuery("ALTER TABLE `convergence_jobs` CHANGE COLUMN `Completed` `Completed` TIMESTAMP NULL DEFAULT NULL  COMMENT '' AFTER `Started`;");
+    $skipped = false;
+}
+
+if (static::getColumn('convergence_jobs', 'Command')) {
+    print("Setting default Command value to `convergence_jobs`");
+    DB::nonQuery("ALTER TABLE `convergence_jobs` CHANGE COLUMN `Command` `Command` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL  COMMENT '' AFTER `Completed`;");
     $skipped = false;
 }
 
