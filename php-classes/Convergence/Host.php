@@ -11,22 +11,22 @@ class Host extends \ActiveRecord
 
     public static $fields = [
         'Hostname' => [
-            'unique' => true
+            'unique' => true,
+            'default' => null
         ],
         'MaxSites' => [
             'type' => 'uint',
             'default' => 25
         ],
         'KernelVersion' => [
-            'type' => 'string',
-            'notnull' => false
+            'default' => null
         ],
         'ApiUsername' => [
-            'notnull' => false,
+            'default' => null,
             'accountLevelEnumerate' => 'Administrator'
         ],
         'ApiKey' => [
-            'notnull' => false,
+            'default' => null,
             'accountLevelEnumerate' => 'Administrator'
         ]
     ];
