@@ -163,10 +163,12 @@ class Deployment extends \ActiveRecord
         // Generate unique handle
         $len = 13;
         $hostname = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', trim($this->Label))));
-        $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len));
-        while (strlen($handle) > 13 || in_array($handle, static::$blacklistedHandles)) {
+        $handle = \HandleBehavior::getUniqueHandle(Site::class, substr($hostname, 0, $len));
+        $StagingSite = Site::getByField('Handle', $handle . '-s');
+        while (strlen($handle) > 13 || in_array($handle, static::$blacklistedHandles) || $StagingSite) {
             $len--;
-            $handle = \HandleBehavior::getUniqueHandle(\Convergence\Site::class, substr($hostname, 0, $len));
+            $handle = \HandleBehavior::getUniqueHandle(Site::class, substr($hostname, 0, $len));
+            $StagingSite = Site::getByField('Handle', $handle . '-s');
         }
 
         // Set up staging configs
