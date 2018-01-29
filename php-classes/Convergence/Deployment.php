@@ -80,6 +80,9 @@ class Deployment extends \ActiveRecord
         ],
         'ProductionHostname' => [
             'method' => 'getProductionHostname'
+        ],
+        'Updating' => [
+            'method' => 'isUpdating'
         ]
     ];
 
