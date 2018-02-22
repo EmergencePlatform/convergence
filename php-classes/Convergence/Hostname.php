@@ -61,10 +61,61 @@ class Hostname extends \ActiveRecord
     {
         parent::save($deep);
 
-        if (!$this->isNew && $this->isFieldDirty('Hostname') && $this->Site) {
+        if (!$this->isNew && $this->isFieldDirty('Hostname') && $this->Site && $this->Site->PrimaryHostnameID == $this->ID) {
             $params = ['primary_hostname' => $this->Hostname];
             $result = $this->Site->executeRequest('', 'PATCH', $params);
             Job::createFromJobsRequest($this->Site->Host, $result);
         }
+    }
+
+    public static function setHostnames($Site, $hostnames)
+    {
+        // Update / create hours
+        $hostnameIDs = [$Site->PrimaryHostnameID];
+        $secondaryHostnames = [];
+
+        foreach ($hostnames as $name) {
+
+            $Hostname = static::getByWhere([
+                'Hostname' => $name,
+                'SiteID' => $Site->ID
+            ]);
+
+            if (!$Hostname) {
+                $Hostname = Hostname::create([
+                    'Hostname' => $name,
+                    'SiteID' => $Site->ID
+                ]);
+            }
+
+            // Skip invalid hostnames
+            if (!$Hostname->validate()) {
+                continue;
+            }
+
+            $Hostname->save();
+            array_push($hostnameIDs, $Hostname->ID);
+            array_push($secondaryHostnames, $Hostname->Hostname);
+        }
+
+        // Delete stale hostnames
+        try {
+            \DB::query(
+                'DELETE FROM `%s` WHERE SiteID = %u AND ID NOT IN (%s)',
+                [
+                    Hostname::$tableName,
+                    $Site->ID,
+                    count($hostnameIDs) ? join(',', $hostnameIDs) : '0'
+                ]
+            );
+        } catch (\TableNotFoundException $e) {
+            // No hostnames need to be deleted
+        }
+
+        // Patch the site object
+        $result = $Site->executeRequest('', 'PATCH', [
+            'hostnames' => $secondaryHostnames
+        ]);
+        Job::createFromJobsRequest($Site->Host, $result);
     }
 }

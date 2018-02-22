@@ -72,6 +72,15 @@
                     <input type="text" name="PrimaryHostname" id="PrimaryHostname" class="form-control" placeholder="{_ 'example.com'}" value="{refill field=PrimaryHostname default=$data->PrimaryHostname->Hostname}" required />
                 </div>
                 <div class="form-group">
+                    <label for="Hostnames">{_ "Secondary Hostnames"}:</label>
+                    {foreach item=Hostname from=$data->Hostnames}
+                        {if $Hostname->ID !== $data->PrimaryHostnameID}
+                            <input type="text" name="Hostnames[]" class="form-control" placeholder="{_ 'example.com'}" value="{refill field=PrimaryHostname default=$Hostname->Hostname}" />
+                        {/if}
+                    {/foreach}
+                    <input type="text" name="Hostnames[]" class="form-control" placeholder="{_ 'example.com'}" />
+                </div>
+                <div class="form-group">
                     <label for="field-title">{_ "Parent Site"}:</label>
                     {$parentSites = Convergence\Site::getAll()}
                     <select name="ParentSiteID" id="ParentSiteID" class="form-control" {if !$data->isPhantom}disabled{/if}>

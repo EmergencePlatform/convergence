@@ -37,6 +37,8 @@ class SitesRequestHandler extends \RecordsRequestHandler
             }
         }
 
+        // @todo validate secondary hostnames
+
         // Create / assign parent site
         if ($Record->isPhantom) {
 
@@ -62,6 +64,10 @@ class SitesRequestHandler extends \RecordsRequestHandler
 
     protected static function onRecordSaved(\ActiveRecord $Record, $data)
     {
+        if (!empty($data['Hostnames'])) {
+            Hostname::setHostnames($Record, $data['Hostnames']);
+        }
+
         // Create Emergence site for new records
         if ($Record->isNew) {
             $configs = [

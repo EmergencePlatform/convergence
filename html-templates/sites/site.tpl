@@ -54,6 +54,15 @@
                     <td><a href="//{$data->PrimaryHostname->Hostname}" target="_blank">{$data->PrimaryHostname->Hostname}</a></td>
                 </tr>
                 <tr>
+                    <th>Secondary Hostnames</th>
+                    <td>
+                        {foreach item=Hostname from=$data->Hostnames}
+                            {if $Hostname->ID !== $data->PrimaryHostnameID}
+                                <a href="//{$Hostname->Hostname}" target="_blank">{$Hostname->Hostname}</a><br>
+                            {/if}
+                        {/foreach}
+                    </td>
+                <tr>
                     <th>Inheritance Key</th>
                     <td>{$data->InheritanceKey}</td>
                 </tr>
