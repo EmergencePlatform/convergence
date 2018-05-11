@@ -138,7 +138,7 @@ class Deployment extends \ActiveRecord
             return $Site->PrimaryHostname->Hostname;
         }
 
-        return false;
+        return $this->getStagingHostname();
     }
 
     /*
